@@ -1,0 +1,1363 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4a86e8">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex,nofollow">
+<title>The money plan</title>
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Noto+Sans+Thai:wght@500;600;700&display=swap">
+<style>
+/* Layout: sticky app bar with tabs; each tab is a stack of cards. Dashboard keeps the workbook's
+   structure: blue title banner, KPI cards, three colour-coded groups (income green, expense red, invest blue). */
+:root{
+  --bg:#f1f4fa; --surface:#ffffff; --surface-2:#f6f8fc; --ink:#1b2535; --ink-2:#47536a; --muted:#77839a;
+  --line:#dde4f0; --grid:#e5e9f1; --focus:#2a78d6;
+  --brand:#4a86e8; --brand-ink:#ffffff; --card:#cfe2f3; --card-ink:#17314d;
+  --inc:#5f9f45; --inc-tint:#d9ead3; --exp:#c9423f; --exp-tint:#f4cccc; --inv:#4a86e8; --inv-tint:#c9daf8;
+  --good:#0a7a0a; --bad:#c0302d; --warn:#9a6700; --good-bg:#dff1da; --bad-bg:#f8d9d7;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948; --s9:#98a1b3;
+  --shadow:0 1px 2px rgba(20,30,50,.06),0 4px 14px rgba(20,30,50,.05);
+  --f-ui:'IBM Plex Sans Thai','Noto Sans Thai','Sarabun',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
+  --f-head:'Noto Sans Thai','IBM Plex Sans Thai',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e131c; --surface:#161d29; --surface-2:#1b2432; --ink:#e8edf5; --ink-2:#b5c0d1; --muted:#8693a8;
+    --line:#2a3447; --grid:#252f40; --focus:#6da7ec;
+    --brand:#2c5db5; --brand-ink:#ffffff; --card:#1f3350; --card-ink:#dbe8f7;
+    --inc:#4c8a38; --inc-tint:#1f3322; --exp:#b23d3a; --exp-tint:#3b2121; --inv:#3a6ccb; --inv-tint:#1c2c4d;
+    --good:#58c458; --bad:#ef7b78; --warn:#e0b04a; --good-bg:#1e3622; --bad-bg:#3d2222;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#2aa02a; --s7:#9085e9; --s8:#e66767; --s9:#7b869a;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e131c; --surface:#161d29; --surface-2:#1b2432; --ink:#e8edf5; --ink-2:#b5c0d1; --muted:#8693a8;
+  --line:#2a3447; --grid:#252f40; --focus:#6da7ec;
+  --brand:#2c5db5; --brand-ink:#ffffff; --card:#1f3350; --card-ink:#dbe8f7;
+  --inc:#4c8a38; --inc-tint:#1f3322; --exp:#b23d3a; --exp-tint:#3b2121; --inv:#3a6ccb; --inv-tint:#1c2c4d;
+  --good:#58c458; --bad:#ef7b78; --warn:#e0b04a; --good-bg:#1e3622; --bad-bg:#3d2222;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#2aa02a; --s7:#9085e9; --s8:#e66767; --s9:#7b869a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:auto}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:14px;line-height:1.5;padding-inline:16px;padding-block:0 48px}
+h1,h2,h3{font-family:var(--f-head);margin:0;text-wrap:balance}
+button,input,select{font:inherit;color:inherit}
+.num,td.n,.kpi b{font-variant-numeric:tabular-nums}
+.wrap{max-width:1560px;margin:0 auto}
+
+/* app bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding-block:10px 8px;margin-inline:-16px;padding-inline:16px;border-bottom:1px solid var(--line)}
+.bar .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;max-width:1560px;margin:0 auto}
+.brand{font-family:var(--f-head);font-weight:700;font-size:16px;letter-spacing:.01em;display:flex;align-items:center;gap:8px;margin-right:auto}
+.brand i{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--brand)}
+.tabs{display:flex;gap:4px;overflow-x:auto;max-width:100%;padding-bottom:2px;scrollbar-width:thin}
+.tabs button{border:0;background:transparent;padding:7px 14px;border-radius:8px;cursor:pointer;color:var(--ink-2);font-weight:500;white-space:nowrap}
+.tabs button:hover{background:var(--surface-2)}
+.tabs button[aria-selected="true"]{background:var(--brand);color:var(--brand-ink)}
+.save{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.save .d{width:8px;height:8px;border-radius:50%;background:var(--good)}
+.save[data-s="pending"] .d,.save[data-s="saving"] .d{background:var(--warn)}
+.save[data-s="error"] .d{background:var(--bad)}
+.save[data-s="error"]{color:var(--bad)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* generic cards */
+.stack{display:flex;flex-direction:column;gap:16px;padding-top:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);min-width:0}
+.card>.hd{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.card>.hd h2{font-size:15px;font-weight:600}
+.card>.bd{padding:16px}
+.note{color:var(--muted);font-size:12.5px}
+.banner{background:var(--brand);color:var(--brand-ink);border-radius:10px;padding:10px 18px;font-family:var(--f-head);font-weight:700;font-size:20px}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.ctl label{display:flex;align-items:center;gap:8px;color:var(--ink-2);font-weight:500}
+select,input[type=text],input[type=number],input[type=date]{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:5px 9px;min-width:0;min-height:32px}
+select{cursor:pointer}
+input[type=number]{text-align:right;font-variant-numeric:tabular-nums}
+button.b{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:500;min-height:32px}
+button.b:hover{background:var(--surface-2)}
+button.b.pri{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+button.ico{border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:6px;width:26px;height:26px;line-height:1;font-size:16px}
+button.ico:hover{background:var(--bad-bg);color:var(--bad)}
+button.ico.fill:hover{background:var(--surface-2);color:var(--ink)}
+
+/* KPI cards */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.kpi{background:var(--card);color:var(--card-ink);border-radius:14px;padding:14px 16px;min-width:0}
+.kpi h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.kpi dl{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;margin:0;align-items:baseline}
+.kpi dt{opacity:.8}
+.kpi dd{margin:0;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;font-size:16px;overflow-wrap:anywhere}
+.kpi .big{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;font-family:var(--f-head);margin-top:2px}
+.kpi small{opacity:.8;display:block;margin-top:2px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:1px 10px;font-weight:600;font-size:13px;background:var(--surface-2);color:var(--ink-2)}
+.pill.ok{background:var(--good-bg);color:var(--good)}
+.pill.no{background:var(--bad-bg);color:var(--bad)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.dot.ok{background:var(--good)} .dot.no{background:var(--bad)}
+
+/* groups */
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,470px),1fr));gap:16px;align-items:start}
+.grp .gh{padding:9px 14px;text-align:center;font-weight:700;border-radius:12px 12px 0 0;font-family:var(--f-head)}
+.grp.inc .gh{background:var(--inc-tint)} .grp.exp .gh{background:var(--exp-tint)} .grp.inv .gh{background:var(--inv-tint)}
+.pie{display:grid;grid-template-columns:minmax(150px,200px) 1fr;gap:14px;align-items:center;padding:14px 14px 4px}
+.pie .cv{position:relative;height:190px;min-width:0}
+.legend{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:12.5px;min-width:0}
+.legend li{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center}
+.legend li span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.legend i{width:12px;height:12px;border-radius:3px}
+.empty{padding:26px 10px;text-align:center;color:var(--muted)}
+
+/* tables */
+.scroller{overflow-x:auto;max-width:100%}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:right}
+td:first-child,th:first-child{text-align:left}
+thead th{font-weight:600}
+.t-inc thead th{background:var(--inc);color:#fff} .t-exp thead th{background:var(--exp);color:#fff} .t-inv thead th{background:var(--inv);color:#fff}
+tr.sum td,tr.sum th{font-weight:700;background:var(--surface-2)}
+td.nm{max-width:210px;overflow:hidden;text-overflow:ellipsis}
+.tag{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--muted);margin-left:6px}
+td.hit-inc{background:var(--inc-tint)} td.hit-exp{background:var(--exp-tint)} td.hit-inv{background:var(--inv-tint)}
+.muted{color:var(--muted)}
+
+/* goals */
+.goals{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:18px}
+.goal-list{display:flex;flex-direction:column;gap:6px}
+.goal-list .g{display:flex;gap:6px}
+.goal-list input{flex:1;min-width:0}
+.meter{height:12px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--s3);border-radius:99px}
+
+/* plan grid */
+table.plan{font-size:12.5px;min-width:1280px}
+table.plan th:first-child,table.plan td:first-child{position:sticky;left:0;z-index:2;background:var(--surface);min-width:210px;max-width:230px}
+table.plan thead th{position:static;background:var(--surface-2);color:var(--ink)}
+table.plan tr.sec th{background:var(--brand);color:#fff;text-align:center}
+table.plan tr.sec th:first-child{text-align:left;background:var(--brand)}
+table.plan tr.sec.s-income th{background:var(--inc)} table.plan tr.sec.s-need th,table.plan tr.sec.s-extra th{background:var(--exp)} table.plan tr.sec.s-save th{background:var(--inv)}
+table.plan tr.sec th input{background:transparent;border:1px solid transparent;color:#fff;font-weight:700;width:100%}
+table.plan tr.sec th input:hover,table.plan tr.sec th input:focus{border-color:rgba(255,255,255,.6)}
+table.plan td input{width:78px;border:1px solid transparent;background:transparent;padding:3px 5px;min-height:28px}
+table.plan td input:hover{border-color:var(--line)} table.plan td input:focus{background:var(--surface);border-color:var(--focus)}
+table.plan td.nm-in{display:flex;align-items:center;gap:2px;padding:2px 4px}
+table.plan td.nm-in input{flex:1;width:auto;text-align:left;min-width:0}
+table.plan tr.total td,table.plan tr.total th{font-weight:700;background:var(--surface-2)}
+table.plan tr.stat th{white-space:nowrap}
+.yrs{display:flex;flex-wrap:wrap;gap:6px}
+.yrs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 16px;cursor:pointer;font-weight:600}
+.yrs button[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+/* records */
+.tx3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:16px;align-items:start}
+table.tx{min-width:640px}
+table.tx td{padding:3px 6px}
+table.tx input,table.tx select{width:100%;min-width:90px}
+table.tx input[type=number]{min-width:96px}
+table.tx td.ro{color:var(--muted);font-size:12px}
+.warn-chip{color:var(--warn);font-size:12px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;align-items:start}
+.chartbox{position:relative;height:300px;min-width:0}
+details summary{cursor:pointer;color:var(--ink-2);font-weight:500;padding:6px 0}
+
+/* settings / notes */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:16px;align-items:start}
+.list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.list li::marker{color:var(--muted)}
+.fieldrow{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:10px}
+.fieldrow label{min-width:190px;color:var(--ink-2)}
+.chk{display:flex;gap:14px;flex-wrap:wrap}
+.chk label{display:flex;gap:6px;align-items:center}
+textarea{width:100%;min-height:120px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+.boot{padding:60px 16px;text-align:center;color:var(--muted)}
+@media (max-width:640px){
+  .pie{grid-template-columns:1fr}
+  .banner{font-size:17px}
+  .fieldrow label{min-width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* v3 additions */
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;border:0;background:var(--brand);color:var(--brand-ink);font-weight:600;padding:12px 18px;border-radius:999px;box-shadow:0 4px 16px rgba(20,30,50,.3);cursor:pointer;min-height:44px}
+.fab:hover{filter:brightness(1.08)}
+body.modal-open .fab{display:none}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:60;max-width:calc(100vw - 32px);display:flex;gap:12px;align-items:center;background:var(--ink);color:var(--surface);padding:10px 14px;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.toast[hidden]{display:none}
+.toast button.b{background:transparent;color:inherit;border-color:currentColor;min-height:28px;padding:2px 10px}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(10,15,25,.5);display:flex;align-items:flex-end;justify-content:center}
+.modal[hidden]{display:none}
+.sheet{background:var(--surface);color:var(--ink);width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:16px;display:flex;flex-direction:column;gap:12px;max-height:92vh;overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+@media (min-width:600px){.modal{align-items:center}.sheet{border-radius:16px}}
+.sh-hd{display:flex;justify-content:space-between;align-items:center}
+.sh-hd h2{font-size:16px}
+.seg{display:flex;gap:4px;background:var(--surface-2);border-radius:10px;padding:3px}
+.seg button{flex:1;border:0;background:transparent;border-radius:8px;padding:8px 6px;cursor:pointer;font-weight:500;color:var(--ink-2);min-height:36px}
+.seg button[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink)}
+.qf{display:grid;gap:10px}
+.qf label{display:flex;flex-direction:column;gap:4px;color:var(--ink-2);font-weight:500}
+.qf input,.qf select,#recQ{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;min-height:40px;width:100%}
+#recQ{width:220px}
+.qa-err{color:var(--bad);min-height:1.2em;font-size:13px}
+.sh-ft{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+input.bad{border-color:var(--bad)!important;background:var(--bad-bg)}
+.alert{border-color:var(--warn)}
+.alert .list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.mom{display:block;margin-top:6px;color:var(--muted);font-size:12px}
+.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:12px;padding:10px 14px;border:1px solid var(--warn);border-radius:10px;background:var(--surface)}
+.bk span{margin-right:auto;color:var(--ink)}
+.np{margin-left:6px;white-space:nowrap}
+.np[hidden]{display:none}
+
+.sechd{display:flex;align-items:center;gap:4px}
+button.ico.w{color:#fff;opacity:.85}
+button.ico.w:hover{background:rgba(255,255,255,.22);color:#fff;opacity:1}
+.addsec{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:12px 16px;border-top:1px solid var(--line)}
+.addsec input[type=text]{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px;min-height:34px;flex:1 1 220px;max-width:340px}
+.addsec select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 8px;min-height:34px}
+
+/* reorder */
+button.ico.drag{cursor:grab;touch-action:none;font-size:15px;width:24px;flex:none;letter-spacing:-1px}
+button.ico.drag:hover{background:var(--surface-2);color:var(--ink)}
+button.ico.w.drag:hover{background:rgba(255,255,255,.22);color:#fff}
+body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
+tr.drag-src>*{opacity:.4}
+tr.drop-before>*{box-shadow:inset 0 3px 0 var(--focus)}
+tr.drop-after>*{box-shadow:inset 0 -3px 0 var(--focus)}
+
+/* standalone / sync */
+body.nosetup .fab{display:none}
+.setup .fieldrow{margin-bottom:10px}
+.setup .err,.err{color:var(--bad);font-weight:500}
+.setup input[type=text],.setup input[type=password]{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;min-height:40px;width:100%;max-width:420px}
+.conflictbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:12px;padding:10px 14px;border:1px solid var(--bad);border-radius:10px;background:var(--bad-bg)}
+.conflictbar[hidden]{display:none}
+.conflictbar span{margin-right:auto}
+
+</style>
+<div class="bar"><div class="row"><div class="brand"><i></i>The money plan</div><nav class="tabs" role="tablist" aria-label="เมนู"></nav><div class="save" id="save" data-s="saved" aria-live="polite"><span class="d"></span><span class="t">กำลังโหลด…</span></div></div></div>
+<div class="wrap" id="bkbar"></div>
+<div class="wrap"><div id="conflictbar" class="conflictbar" role="alert" hidden><span>ข้อมูลบน GitHub ถูกแก้ไขจากเครื่องอื่นระหว่างที่คุณแก้ไข</span><button class="b pri" data-act="conflictload">ใช้ข้อมูลล่าสุดจาก GitHub (ทิ้งที่แก้ในเครื่องนี้)</button><button class="b" data-act="conflictforce">เขียนทับด้วยข้อมูลเครื่องนี้</button></div></div>
+<main class="wrap" id="view"><div class="boot">กำลังโหลดข้อมูล…</div></main>
+<button class="fab" data-act="quick" aria-label="บันทึกรายการใหม่">+ บันทึกรายการ</button>
+<div id="qa" class="modal" hidden></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+/* ===== core: pure calculations (no DOM) ===== */
+const MONTHS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const MONTHS_FULL=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const SEC_KEYS=['income','need','extra','save'];
+const GROUPS={
+  income:{type:'income',keys:['income'],title:'กลุ่มรายรับ',cls:'inc'},
+  expense:{type:'expense',keys:['need','extra'],title:'กลุ่มค่าใช้จ่าย',cls:'exp'},
+  invest:{type:'invest',keys:['save'],title:'กลุ่มการลงทุน การออม',cls:'inv'}
+};
+/* Sections of a plan year: 4 built-in ones + any custom ones the user added (py.secs). kind: income | expense | invest */
+function secList(S,y){
+  const py=S.plan[y],T=(S.settings&&S.settings.secTitles)||{};
+  const base=[['income','income'],['need','expense'],['extra','expense'],['save','invest']].map(([k,kind])=>({key:k,kind,title:T[k]||k,base:true}));
+  const cu=((py&&py.secs)||[]).map(x=>({key:x.key,kind:x.kind,title:x.title,base:false}));
+  let L=base.concat(cu);
+  const ord=py&&py.order;
+  if(ord&&ord.length){const pos=k=>{const i=ord.indexOf(k);return i<0?1e6+L.findIndex(x=>x.key===k):i;};L=L.slice().sort((a,b)=>pos(a.key)-pos(b.key));}
+  return L;
+}
+function groupKeys(S,y,kind){return secList(S,y).filter(x=>x.kind===kind).map(x=>x.key);}
+const norm=s=>String(s==null?'':s).trim().toLowerCase();
+const nz=v=>(typeof v==='number'&&isFinite(v))?v:0;
+const sum=a=>a.reduce((s,v)=>s+nz(v),0);
+
+/* Year-Month as "YYYY-M" (no zero pad), same as the workbook. A row without a date can carry a typed ym. */
+function ymOf(t){
+  if(t.date&&/^\d{4}-\d{2}/.test(t.date))return t.date.slice(0,4)+'-'+parseInt(t.date.slice(5,7),10);
+  return t.ym||'';
+}
+const yOf=t=>{const y=ymOf(t);return y?parseInt(y.slice(0,4),10):null};
+const mOf=t=>{const y=ymOf(t);return y?parseInt(y.split('-')[1],10):null};
+
+function txSel(S,type,y,m){
+  return S.tx.filter(t=>t.type===type&&yOf(t)===y&&(m==='all'||mOf(t)===m));
+}
+function planNames(S,y,keys){
+  const py=S.plan[y];const out=[];
+  if(!py)return out;
+  keys.forEach(k=>(py[k]||[]).forEach(r=>{
+    if(norm(r.name)&&!out.some(n=>norm(n)===norm(r.name)))out.push(String(r.name).trim());
+  }));
+  return out;
+}
+/* first row with this name wins, like VLOOKUP */
+function planBudget(S,y,m,keys,name){
+  const py=S.plan[y];
+  if(!py)return 0;
+  for(const k of keys){
+    for(const r of (py[k]||[])){
+      if(norm(r.name)===norm(name)){
+        return m==='all'?sum(r.m):nz(r.m[m-1]);
+      }
+    }
+  }
+  return 0;
+}
+/* Rows of one dashboard table: planned names first, then names that only exist in actuals. */
+function groupTable(S,kind,y,m){
+  const g=GROUPS[kind];
+  const rows=[];
+  const add=(name,planned)=>{
+    if(!norm(name)||rows.some(r=>norm(r.name)===norm(name)))return;
+    rows.push({name:String(name).trim(),planned});
+  };
+  const gk=groupKeys(S,y,kind);
+  planNames(S,y,gk).forEach(n=>add(n,true));
+  txSel(S,g.type,y,m).forEach(t=>add(t.name,false));
+  rows.forEach(r=>{
+    const list=txSel(S,g.type,y,m).filter(t=>norm(t.name)===norm(r.name));
+    r.budget=planBudget(S,y,m,gk,r.name);
+    if(kind==='invest'){
+      r.buy=sum(list.filter(t=>t.side!=='ขาย').map(t=>t.amount));
+      r.sell=sum(list.filter(t=>t.side==='ขาย').map(t=>t.amount));
+      r.actual=r.buy-r.sell;
+    }else{
+      r.actual=sum(list.map(t=>t.amount));
+    }
+    r.pct=r.budget>0?r.actual/r.budget:0;
+    r.remain=r.actual<r.budget?r.budget-r.actual:null;
+    r.over=r.actual>r.budget?r.actual-r.budget:null;
+  });
+  const tot={actual:sum(rows.map(r=>r.actual)),budget:sum(rows.map(r=>r.budget)),remain:sum(rows.map(r=>r.remain)),over:sum(rows.map(r=>r.over)),
+    buy:sum(rows.map(r=>r.buy)),sell:sum(rows.map(r=>r.sell))};
+  tot.pct=tot.budget>0?tot.actual/tot.budget:0;
+  return {rows,tot};
+}
+/* Year summary (workbook "สรุปปี"): income, expense, saving+invest counts purchases only, as in the original. */
+function yearSummary(S,y){
+  const out=[];
+  for(let m=1;m<=12;m++){
+    const inc=sum(txSel(S,'income',y,m).map(t=>t.amount));
+    const exp=sum(txSel(S,'expense',y,m).map(t=>t.amount));
+    const inv=sum(txSel(S,'invest',y,m).filter(t=>t.side!=='ขาย').map(t=>t.amount));
+    out.push({m,inc,exp,inv,pct:inc>0?inv/inc:0});
+  }
+  const tot={inc:sum(out.map(r=>r.inc)),exp:sum(out.map(r=>r.exp)),inv:sum(out.map(r=>r.inv))};
+  tot.pct=tot.inc>0?tot.inv/tot.inc:0;
+  return {rows:out,tot};
+}
+/* Plan totals for one year block */
+function planTotals(S,y){
+  const py=S.plan[y];
+  const z=()=>Array(12).fill(0);
+  const t={income:z(),need:z(),extra:z(),save:z(),expense:z(),remain:z(),out:z(),sec:{}};
+  if(!py)return t;
+  const L=secList(S,y);
+  L.forEach(x=>{
+    const a=z();(py[x.key]||[]).forEach(r=>{for(let i=0;i<12;i++)a[i]+=nz(r.m[i]);});
+    t.sec[x.key]=a;
+    if(t[x.key]&&x.base)t[x.key]=a.slice();
+    if(x.kind==='expense')for(let i=0;i<12;i++)t.expense[i]+=a[i];
+  });
+  /* income = built-in income + custom income; out = expenses (all) + invest (all) */
+  for(let i=0;i<12;i++){
+    t.income[i]=L.filter(x=>x.kind==='income').reduce((s,x)=>s+t.sec[x.key][i],0);
+    const inv=L.filter(x=>x.kind==='invest').reduce((s,x)=>s+t.sec[x.key][i],0);
+    t.out[i]=t.expense[i]+inv;
+    t.remain[i]=t.income[i]-t.out[i];
+  }
+  return t;
+}
+/* Investments: invested (buy - sell) over all years switched on, latest entered value by date */
+function investTable(S){
+  const on=y=>S.settings.invYears[y]!==false;
+  const list=S.tx.filter(t=>t.type==='invest'&&(yOf(t)==null||on(yOf(t))));
+  const names=[];
+  list.forEach(t=>{if(norm(t.name)&&!names.some(n=>norm(n)===norm(t.name)))names.push(String(t.name).trim());});
+  const rows=names.map(n=>{
+    const l=list.filter(t=>norm(t.name)===norm(n));
+    const invested=sum(l.filter(t=>t.side!=='ขาย').map(t=>t.amount))-sum(l.filter(t=>t.side==='ขาย').map(t=>t.amount));
+    const vals=S.pf.filter(p=>norm(p.name)===norm(n)&&p.value!=null).map((p,i)=>({p,i}))
+      .sort((a,b)=>((a.p.date||'')<(b.p.date||'')?-1:(a.p.date||'')>(b.p.date||'')?1:a.i-b.i));
+    const cur=vals.length?vals[vals.length-1].p.value:null;
+    return {name:n,invested,current:cur,gain:cur==null?null:cur-invested};
+  });
+  const withVal=rows.filter(r=>r.current!=null);
+  const totInvested=sum(rows.map(r=>r.invested));
+  const totCurrent=sum(withVal.map(r=>r.current));
+  const base=sum(withVal.map(r=>r.invested));
+  return {rows,totInvested,totCurrent,pct:base>0?(totCurrent-base)/base:null,coverage:withVal.length+'/'+rows.length};
+}
+function emergencyProgress(S){
+  const kw=norm(S.settings.emergencyKeyword);
+  if(!kw)return 0;
+  const l=S.tx.filter(t=>t.type==='invest'&&(norm(t.group).includes(kw)||norm(t.note).includes(kw)));
+  return sum(l.filter(t=>t.side!=='ขาย').map(t=>t.amount))-sum(l.filter(t=>t.side==='ขาย').map(t=>t.amount));
+}
+function allYears(S){
+  const s=new Set([2023,2024,2025,2026,2027,2028,2029,2030]);
+  Object.keys(S.plan).forEach(y=>s.add(+y));
+  S.tx.forEach(t=>{const y=yOf(t);if(y)s.add(y);});
+  return [...s].sort((a,b)=>a-b);
+}
+if(typeof module!=='undefined')module.exports={secList,groupKeys,ymOf,yOf,mOf,groupTable,yearSummary,planTotals,investTable,emergencyProgress,allYears,norm,sum};
+
+/* ===== app: state, auto-save, views ===== */
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>[...(r||document).querySelectorAll(s)];
+const h=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>(n==null||!isFinite(n))?'-':(Math.round(n)).toLocaleString('en-US');
+const fmtD=n=>(n==null||!isFinite(n))?'-':(Math.round(n*100)/100).toLocaleString('en-US',{maximumFractionDigits:2});
+const pct=x=>(x==null||!isFinite(x))?'-':(x*100).toFixed(2)+'%';
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const pad=n=>String(n).padStart(2,'0');
+const cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const DOCS=['settings','plan','tx','pf'];
+const SEC_DEFAULT={income:'เป้าหมายรายรับ',need:'รายจ่ายจำเป็น',extra:'รายจ่ายจำเป็น',save:'เก็บออม ลงทุน'};
+const DEFAULT_SETTINGS={year:2026,month:'9',targetRate:0.2,goals:[],emergencyTarget:120000,emergencyKeyword:'เงินสำรองฉุกเฉิน',
+  secTitles:{...SEC_DEFAULT},invYears:{},invFrom:'',invTo:'',invPort:'ทั้งหมด',dashPort:'',planYear:2026,txYear:2026,txMonth:'all'};
+
+let S={settings:{...DEFAULT_SETTINGS},plan:{},tx:[],pf:[]};
+let db=null,tab='dash',loaded=false,hasData=false;
+let recQ='',qa=null,qaLastType='expense';
+let undoSnap=null,toastTimer=null;
+const charts={};
+const dirty=new Set();let saveTimer=null,saving=false,lastSaved=null;
+
+/* ---------- persistence (auto save) ----------
+   mode 'claude' : Claude artifact database (when the page runs inside Claude)
+   mode 'github' : one data.json in the user's private GitHub repo (standalone site, syncs across devices)
+   mode 'local'  : this browser only (localStorage)
+   mode 'setup'  : standalone site not connected yet */
+let mode='local',setupMsg='',ghSha=null,ghRemoteSha=null,conflict=false;
+const GH_KEY='mp:gh';
+function ghCfg(){try{const c=JSON.parse(localStorage.getItem(GH_KEY)||'null');return c&&c.owner&&c.repo&&c.token?c:null;}catch(e){return null;}}
+function b64enc(str){const u=new TextEncoder().encode(str);let bin='';for(let i=0;i<u.length;i+=0x8000)bin+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(bin);}
+function b64dec(b){const bin=atob(String(b).replace(/\s/g,''));const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new TextDecoder().decode(u);}
+function ghApi(cfg,method,path,body,accept){
+  return fetch('https://api.github.com'+path,{method,cache:'no-store',
+    headers:{'Authorization':'Bearer '+cfg.token,'Accept':accept||'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(body?{'Content-Type':'application/json'}:{})},
+    body:body?JSON.stringify(body):undefined});
+}
+const ghPath=cfg=>`/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/data.json`;
+async function ghLoad(cfg){
+  const r=await ghApi(cfg,'GET',ghPath(cfg));
+  if(r.status===404){
+    const rr=await ghApi(cfg,'GET',`/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}`);
+    if(rr.status===200){ghSha=null;return {empty:true};}
+    throw new Error(rr.status===401||rr.status===403?'token ไม่ถูกต้องหรือไม่มีสิทธิ์เข้า repository นี้':'ไม่พบ repository '+cfg.owner+'/'+cfg.repo+' (ตรวจชื่อ และตรวจว่า token เลือก repository นี้ไว้)');
+  }
+  if(r.status===401||r.status===403)throw new Error('token ไม่ถูกต้อง หมดอายุ หรือไม่มีสิทธิ์ (ต้องเลือก Contents: Read and write)');
+  if(!r.ok)throw new Error('GitHub ตอบกลับสถานะ '+r.status);
+  const j=await r.json();ghSha=j.sha;
+  let txt=j.content?b64dec(j.content):'';
+  if(!txt){const r2=await ghApi(cfg,'GET',ghPath(cfg),null,'application/vnd.github.raw+json');if(!r2.ok)throw new Error('อ่านไฟล์ข้อมูลไม่ได้ ('+r2.status+')');txt=await r2.text();}
+  let o;try{o=JSON.parse(txt);}catch(e){throw new Error('ไฟล์ data.json ใน repository อ่านไม่ได้ (รูปแบบไม่ถูกต้อง)');}
+  return {data:{settings:o.settings,plan:o.plan,tx:o.tx,pf:o.pf}};
+}
+async function ghSave(cfg){
+  const payload=JSON.stringify({app:'the-money-plan',version:1,savedAt:new Date().toISOString(),settings:S.settings,plan:S.plan,tx:S.tx,pf:S.pf});
+  const body={message:'update '+new Date().toISOString(),content:b64enc(payload)};
+  if(ghSha)body.sha=ghSha;
+  const r=await ghApi(cfg,'PUT',ghPath(cfg),body);
+  if(r.status===409||r.status===422){
+    const cur=await ghApi(cfg,'GET',ghPath(cfg));
+    if(cur.ok){const j=await cur.json();if(j.sha!==ghSha){ghRemoteSha=j.sha;conflict=true;throw new Error('conflict');}}
+  }
+  if(r.status===401||r.status===403)throw new Error('token ไม่มีสิทธิ์เขียน (ต้องเลือก Contents: Read and write)');
+  if(!r.ok)throw new Error('GitHub ตอบกลับสถานะ '+r.status);
+  const j=await r.json();ghSha=j.content&&j.content.sha;
+}
+function localGet(){
+  const got={};
+  for(const k of DOCS){try{const v=localStorage.getItem('mp:'+k);if(v)got[k]=JSON.parse(v);}catch(e){}}
+  return got;
+}
+function setStatus(s,msg){
+  const el=$('#save');if(!el)return;
+  el.dataset.s=s;
+  const t=el.querySelector('.t');
+  const gh=mode==='github';
+  if(s==='pending')t.textContent='มีการแก้ไข กำลังจะบันทึก…';
+  else if(s==='saving')t.textContent=gh?'กำลังซิงก์กับ GitHub…':'กำลังบันทึก…';
+  else if(s==='error')t.textContent='บันทึกไม่สำเร็จ จะลองใหม่อัตโนมัติ'+(msg?' ('+msg+')':'');
+  else if(s==='conflict')t.textContent='ข้อมูลบน GitHub ถูกแก้จากเครื่องอื่น กรุณาเลือกวิธีจัดการ';
+  else if(mode==='setup')t.textContent='ยังไม่ได้เชื่อมต่อที่เก็บข้อมูล';
+  else t.textContent=lastSaved?((gh?'ซิงก์กับ GitHub แล้ว ':'บันทึกอัตโนมัติแล้ว ')+lastSaved):(mode==='claude'?'พร้อมบันทึกอัตโนมัติ':gh?'เชื่อมต่อ GitHub แล้ว':'เก็บในเบราว์เซอร์นี้เท่านั้น');
+  const cb=$('#conflictbar');if(cb)cb.hidden=!conflict;
+}
+function markDirty(k){
+  if(k==='tx'&&!S.settings.lastBackup){S.settings.lastBackup=todayStr();dirty.add('settings');}
+  dirty.add(k);hasData=true;setStatus('pending');
+  clearTimeout(saveTimer);saveTimer=setTimeout(flush,mode==='github'?1500:600);
+}
+async function flush(){
+  if(mode==='setup'||conflict)return;
+  if(saving){saveTimer=setTimeout(flush,300);return;}
+  if(!dirty.size)return;
+  saving=true;const keys=[...dirty];dirty.clear();setStatus('saving');
+  try{
+    if(mode==='github'){await ghSave(ghCfg());}
+    else for(const k of keys){
+      if(db){await db.doc('mp/'+k).set({v:S[k],savedAt:new Date().toISOString()});}
+      else{try{localStorage.setItem('mp:'+k,JSON.stringify(S[k]));}catch(e){throw new Error('storage');}}
+    }
+    const d=new Date();lastSaved=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+    setStatus('saved');
+  }catch(e){
+    keys.forEach(k=>dirty.add(k));
+    if(conflict){setStatus('conflict');}
+    else{setStatus('error',e&&(e.code||e.message)?String(e.code||e.message).slice(0,60):'');clearTimeout(saveTimer);saveTimer=setTimeout(flush,5000);}
+  }finally{saving=false;}
+}
+async function loadAll(){
+  const inClaude=!!(window.claude&&window.claude.use);
+  try{db=inClaude?await window.claude.use('db'):null;}catch(e){db=null;}
+  let got={};
+  if(db){
+    mode='claude';
+    for(const k of DOCS){
+      try{const s=await db.doc('mp/'+k).get();if(s.exists&&s.data()&&s.data().v!=null)got[k]=s.data().v;}catch(e){}
+    }
+  }else if(inClaude){mode='local';got=localGet();}
+  else{
+    const cfg=ghCfg();
+    if(cfg){
+      try{const res=await ghLoad(cfg);mode='github';got=res.data||{};}
+      catch(e){mode='setup';setupMsg='เชื่อมต่อ GitHub ไม่สำเร็จ: '+e.message;}
+    }else if(localStorage.getItem('mp:localonly')){mode='local';got=localGet();}
+    else mode='setup';
+  }
+  applyLoaded(got);
+}
+async function ghPull(force){
+  if(mode!=='github')return;
+  if(!force&&(dirty.size||saving||conflict))return;
+  try{
+    const res=await ghLoad(ghCfg());
+    if(res.data){applyLoaded(res.data);dirty.clear();conflict=false;setStatus('saved');render();toast('โหลดข้อมูลล่าสุดจาก GitHub แล้ว');}
+  }catch(e){toast('ซิงก์ไม่สำเร็จ: '+e.message);}
+}
+async function ghPullIfChanged(){
+  if(mode!=='github'||dirty.size||saving||conflict)return;
+  const act=document.activeElement;if(act&&/INPUT|TEXTAREA|SELECT/.test(act.tagName)&&act.closest('#view'))return;
+  try{
+    const r=await ghApi(ghCfg(),'GET',ghPath(ghCfg()));
+    if(r.ok){const j=await r.clone().json();if(j.sha&&j.sha!==ghSha)await ghPull(false);}
+  }catch(e){}
+}
+function applyLoaded(got){
+  hasData=!!(got.plan||got.tx||got.settings);
+  S.settings={...DEFAULT_SETTINGS,...(got.settings||{})};
+  S.settings.secTitles={...SEC_DEFAULT,...(S.settings.secTitles||{})};
+  S.settings.invYears=S.settings.invYears||{};
+  S.settings.goals=S.settings.goals||[];
+  S.plan=got.plan||{};S.tx=got.tx||[];S.pf=got.pf||[];
+  Object.values(S.plan).forEach(py=>{SEC_KEYS.forEach(k=>{py[k]=py[k]||[];});py.secs=py.secs||[];py.secs.forEach(x=>{py[x.key]=py[x.key]||[];});});
+  loaded=true;
+}
+
+/* ---------- toast + undo ---------- */
+function toast(msg,canUndo){
+  const el=$('#toast');if(!el)return;
+  el.innerHTML='<span>'+h(msg)+'</span>'+(canUndo?'<button class="b" data-act="undo">เลิกทำ</button>':'');
+  el.hidden=false;clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{el.hidden=true;if(canUndo)undoSnap=null;},canUndo?10000:2500);
+}
+function snapshot(keys){undoSnap={keys,data:keys.map(k=>JSON.parse(JSON.stringify(S[k])))};}
+function doUndo(){
+  if(!undoSnap){return;}
+  undoSnap.keys.forEach((k,i)=>{S[k]=undoSnap.data[i];markDirty(k);});
+  undoSnap=null;render();toast('เลิกทำแล้ว');
+}
+function removing(msg,keys,fn){snapshot(keys);fn();keys.forEach(markDirty);render();toast(msg,true);}
+
+/* ---------- charts ---------- */
+function mkChart(id,cfg){
+  if(charts[id]){charts[id].destroy();delete charts[id];}
+  const el=document.getElementById(id);
+  if(!el||typeof Chart==='undefined')return;
+  Chart.defaults.font.family=cv('--f-ui');
+  Chart.defaults.color=cv('--ink-2');
+  charts[id]=new Chart(el,cfg);
+}
+function killCharts(){Object.keys(charts).forEach(k=>{charts[k].destroy();delete charts[k];});}
+const SERIES=['--s1','--s2','--s3','--s4','--s5','--s6','--s7','--s8'];
+function pieData(rows,key){
+  const list=rows.filter(r=>r[key]>0).sort((a,b)=>b[key]-a[key]);
+  const top=list.slice(0,7).map((r,i)=>({name:r.name,v:r[key],c:cv(SERIES[i])}));
+  const rest=sum(list.slice(7).map(r=>r[key]));
+  if(rest>0)top.push({name:'อื่นๆ ('+(list.length-7)+' รายการ)',v:rest,c:cv('--s9')});
+  return top;
+}
+function pieHTML(id,items){
+  const total=sum(items.map(i=>i.v));
+  if(!items.length)return '<div class="empty">ยังไม่มีข้อมูลในช่วงที่เลือก</div>';
+  return `<div class="pie"><div class="cv"><canvas id="${id}" aria-label="สัดส่วน"></canvas></div>
+  <ul class="legend">${items.map(i=>`<li><i style="background:${i.c}"></i><span title="${h(i.name)}">${h(i.name)}</span><span class="num">${fmt(i.v)} <span class="muted">${(i.v/total*100).toFixed(1)}%</span></span></li>`).join('')}</ul></div>`;
+}
+function drawPie(id,items){
+  if(!items.length)return;
+  const total=sum(items.map(i=>i.v));
+  mkChart(id,{type:'doughnut',data:{labels:items.map(i=>i.name),datasets:[{data:items.map(i=>i.v),backgroundColor:items.map(i=>i.c),borderColor:cv('--surface'),borderWidth:2}]},
+    options:{maintainAspectRatio:false,cutout:'56%',animation:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>' '+c.label+': '+fmt(c.parsed)+' ('+(c.parsed/total*100).toFixed(1)+'%)'}}}}});
+}
+function barOpts(){
+  return {maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',align:'start',labels:{boxWidth:12,boxHeight:12,color:cv('--ink-2')}},
+      tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmt(c.parsed.y)}}},
+    scales:{x:{grid:{display:false},ticks:{color:cv('--muted')},border:{color:cv('--line')}},
+      y:{beginAtZero:true,grid:{color:cv('--grid')},border:{display:false},ticks:{color:cv('--muted'),callback:v=>Math.abs(v)>=1000?(v/1000)+'k':v}}}};
+}
+function drawMonthly(id,y){
+  const ys=yearSummary(S,y);
+  mkChart(id,{type:'bar',data:{labels:MONTHS,datasets:[
+    {label:'รายรับ',data:ys.rows.map(r=>r.inc),backgroundColor:cv('--s1'),borderRadius:4,borderSkipped:'bottom'},
+    {label:'รายจ่าย',data:ys.rows.map(r=>r.exp),backgroundColor:cv('--s2'),borderRadius:4,borderSkipped:'bottom'},
+    {label:'ออม + ลงทุน (ซื้อ)',data:ys.rows.map(r=>r.inv),backgroundColor:cv('--s3'),borderRadius:4,borderSkipped:'bottom'}]},
+    options:barOpts()});
+}
+
+/* ---------- small html helpers ---------- */
+function monthOpts(sel,withAll,allLabel){
+  let o=withAll?`<option value="${withAll}" ${String(sel)===String(withAll)?'selected':''}>${allLabel}</option>`:'';
+  for(let m=1;m<=12;m++)o+=`<option value="${m}" ${String(sel)===String(m)?'selected':''}>${m} · ${MONTHS[m-1]}</option>`;
+  return o;
+}
+function yearOpts(sel){return allYears(S).map(y=>`<option ${+sel===y?'selected':''}>${y}</option>`).join('');}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function defaultDate(y,m){
+  const t=new Date();
+  if(m==='all'||!m)return y===t.getFullYear()?todayStr():y+'-01-01';
+  return (y===t.getFullYear()&&m===t.getMonth()+1)?todayStr():y+'-'+pad(m)+'-01';
+}
+function selMonth(){return S.settings.month==='ทั้งปี'?'all':parseInt(S.settings.month,10);}
+
+/* ---------- VIEW: dashboard (Overall) ---------- */
+function groupCard(kind,y,m){
+  const g=GROUPS[kind],T=groupTable(S,kind,y,m);
+  const isInv=kind==='invest';
+  const cmp=isInv?(T.tot.pct>1):(kind==='income'?T.tot.pct>1:T.tot.pct<1);
+  const totPct=T.tot.budget>0?((cmp?'✓ ':(kind==='expense'?'✕ ':'▼ '))+(T.tot.pct*100).toFixed(0)+'%'):'';
+  const hitCls=kind==='income'?'hit-inc':kind==='expense'?'hit-exp':'hit-inv';
+  const items=pieData(T.rows,'actual');
+  const head=isInv
+    ?'<th>ชื่อรายการ</th><th>รวมซื้อ</th><th>รวมขาย</th><th>ยอดซื้อ-ขาย</th><th>Budget</th><th>%</th><th>เหลืออีก</th><th>เกิน</th>'
+    :`<th>ชื่อรายการ</th><th>${kind==='income'?'รวมรายรับ':'รวมค่าใช้จ่าย'}</th><th>Budget</th><th>%</th><th>เหลืออีก</th><th>เกิน</th>`;
+  const rowH=r=>{
+    const p=`<td class="n ${(r.budget>0&&r.pct>=1)?hitCls:''}">${pct(r.pct)}</td>`;
+    const tail=`<td class="n">${r.remain==null?'-':fmt(r.remain)}</td><td class="n">${r.over==null?'-':fmt(r.over)}</td>`;
+    const nm=`<td class="nm" title="${h(r.name)}">${h(r.name)}${r.planned?'':'<span class="tag">นอกแผน</span>'}</td>`;
+    return isInv?`<tr>${nm}<td class="n">${fmt(r.buy)}</td><td class="n">${fmt(r.sell)}</td><td class="n">${fmt(r.actual)}</td><td class="n">${fmt(r.budget)}</td>${p}${tail}</tr>`
+      :`<tr>${nm}<td class="n">${fmt(r.actual)}</td><td class="n">${fmt(r.budget)}</td>${p}${tail}</tr>`;
+  };
+  const sumRow=isInv
+    ?`<tr class="sum"><td>รวม</td><td class="n">${fmt(T.tot.buy)}</td><td class="n">${fmt(T.tot.sell)}</td><td class="n">${fmt(T.tot.actual)}</td><td class="n">${fmt(T.tot.budget)}</td><td class="n">${totPct||'-'}</td><td class="n">${fmt(T.tot.remain)}</td><td class="n">${fmt(T.tot.over)}</td></tr>`
+    :`<tr class="sum"><td>รวม</td><td class="n">${fmt(T.tot.actual)}</td><td class="n">${fmt(T.tot.budget)}</td><td class="n">${totPct||'-'}</td><td class="n">${fmt(T.tot.remain)}</td><td class="n">${fmt(T.tot.over)}</td></tr>`;
+  return {html:`<section class="card grp ${g.cls}"><div class="gh">${g.title}</div>${pieHTML('pie-'+kind,items)}
+    <div class="scroller"><table class="t-${g.cls}"><thead><tr>${head}</tr></thead><tbody>${sumRow}${T.rows.map(rowH).join('')}</tbody></table></div></section>`,items,T};
+}
+function momText(cur,prev,label){
+  if(prev==null)return '';
+  if(prev>0){const d=(cur-prev)/prev*100;return `<small class="mom">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(1)}% จาก${label} (${fmt(prev)})</small>`;}
+  return `<small class="mom">ไม่มีข้อมูล${label}</small>`;
+}
+function kpiCard(title,T,kind,prev,plabel){
+  const ok=kind==='expense'?T.tot.pct<1:T.tot.pct>1;
+  return `<div class="kpi"><h3>${title}</h3><dl><dt>Actual</dt><dd>${fmt(T.tot.actual)}</dd><dt>Budget</dt><dd>${fmt(T.tot.budget)}</dd><dt>%</dt>
+  <dd>${T.tot.budget>0?`<span class="pill ${ok?'ok':'no'}">${ok?'✓':(kind==='expense'?'✕':'▼')} ${(T.tot.pct*100).toFixed(0)}%</span>`:'-'}</dd></dl>${momText(T.tot.actual,prev,plabel)}</div>`;
+}
+function alertsHTML(ge,gv){
+  const over=ge.T.rows.filter(r=>r.budget>0&&r.actual>r.budget);
+  const outside=[...ge.T.rows,...gv.T.rows].filter(r=>!r.planned&&Math.abs(r.actual)>0);
+  if(!over.length&&!outside.length)return '';
+  const li=[];
+  over.forEach(r=>li.push(`<li><b>เกินงบ</b> ${h(r.name)} เกิน ${fmt(r.actual-r.budget)} บาท (${fmt(r.actual)} จากงบ ${fmt(r.budget)})</li>`));
+  if(outside.length)li.push(`<li><b>นอกแผน</b> มี ${outside.length} รายการที่ไม่อยู่ในแผน: ${outside.slice(0,6).map(r=>h(r.name)).join(', ')}${outside.length>6?' …':''} — เพิ่มชื่อเหล่านี้ในหน้า “วางแผน” หรือแก้ชื่อให้ตรงกับแผน</li>`);
+  return `<section class="card alert" role="status"><div class="hd"><h2>⚠ แจ้งเตือน</h2></div><div class="bd"><ul class="list">${li.join('')}</ul></div></section>`;
+}
+let dashCtx=null;
+function viewDash(){
+  const y=+S.settings.year,m=selMonth();
+  const gi=groupCard('income',y,m),ge=groupCard('expense',y,m),gv=groupCard('invest',y,m);
+  const incA=gi.T.tot.actual,expA=ge.T.tot.actual,invA=gv.T.tot.actual;
+  const rate=incA>0?invA/incA:null,tr=+S.settings.targetRate||0;
+  const rateOk=rate!=null&&rate>=tr;
+  const net=incA-expA;
+  const ep=emergencyProgress(S),et=+S.settings.emergencyTarget||0;
+  const pt=planTotals(S,y);
+  const six=S.plan[y]?sum(pt.expense)/12*6:null;
+  dashCtx={y,gi,ge,gv};
+  const pm=m==='all'?'all':(m===1?12:m-1),pyr=m==='all'?y-1:(m===1?y-1:y),plabel=m==='all'?'ปีก่อน':'เดือนก่อน';
+  const prevOf=k=>groupTable(S,k,pyr,pm).tot.actual;
+  return `<div class="stack">
+  <div class="banner">Dashboard Budget รายรับ รายจ่าย</div>
+  <div class="ctl"><label>เลือกปี <select id="selYear" data-b="sel" data-key="year">${yearOpts(y)}</select></label>
+  <label>เลือกเดือน <select id="selMonth" data-b="sel" data-key="month">${monthOpts(S.settings.month,'ทั้งปี','ทั้งปี')}</select></label></div>
+  <div class="kpis">
+    ${kpiCard('รายรับรวม',gi.T,'income',prevOf('income'),plabel)}${kpiCard('รายจ่ายรวม',ge.T,'expense',prevOf('expense'),plabel)}${kpiCard('ลงทุนรวม',gv.T,'invest',prevOf('invest'),plabel)}
+    <div class="kpi"><h3>อัตราการเก็บออม / รายได้</h3><div class="big">${rate==null?'-':(rate*100).toFixed(0)+'%'}</div>
+      <small>${rate==null?'ยังไม่มีรายรับในช่วงนี้':`<span class="pill ${rateOk?'ok':'no'}">${rateOk?'✓ ถึงเป้า':'▼ ต่ำกว่าเป้า'}</span> เป้าหมาย ${(tr*100).toFixed(0)}%`}</small></div>
+    <div class="kpi"><h3>รายรับสุทธิหลังหัก คชจ</h3><div class="big">${net<0?'-':''}${fmt(Math.abs(net))}</div>
+      <small><span class="pill ${net>0?'ok':'no'}">${net>0?'● เหลือ':'● ติดลบ/ศูนย์'}</span></small></div>
+  </div>
+  ${alertsHTML(ge,gv)}
+  <section class="card"><div class="hd"><h2>เป้าหมายในแต่ละปี</h2><span class="note">แก้ไขได้ บันทึกอัตโนมัติ</span></div><div class="bd goals">
+    <div><div class="goal-list" id="goalList">${S.settings.goals.map((g,i)=>`<div class="g"><input type="text" value="${h(g)}" data-b="goal" data-i="${i}" aria-label="เป้าหมาย ${i+1}"><button class="ico" data-act="goaldel" data-i="${i}" title="ลบเป้าหมาย">×</button></div>`).join('')||'<div class="note">ยังไม่มีเป้าหมาย</div>'}</div>
+      <p><button class="b" data-act="goaladd">+ เพิ่มเป้าหมาย</button></p></div>
+    <div><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><b>เก็บเงินสำรองสำหรับฉุกเฉิน</b><span class="num">${fmt(ep)} / ${fmt(et)} บาท</span></div>
+      <div class="meter" style="margin:8px 0" role="img" aria-label="ความคืบหน้า ${et>0?Math.min(100,ep/et*100).toFixed(0):0}%"><i style="width:${et>0?Math.max(0,Math.min(100,ep/et*100)):0}%"></i></div>
+      <div class="note">${et>0?(ep/et*100).toFixed(1)+'% ของเป้า':''} · นับจากรายการลงทุนที่มีคำว่า “${h(S.settings.emergencyKeyword)}”</div>
+      ${six!=null?`<div class="note">อ้างอิง: ค่าใช้จ่าย 6 เดือนตามแผนปี ${y} ≈ ${fmt(six)} บาท</div>`:''}</div></div></section>
+  <div class="groups">${gi.html}${ge.html}${gv.html}</div>
+  <section class="card"><div class="hd"><h2>สรุปรายเดือน ปี ${y}</h2><span class="note">ออม + ลงทุน นับเฉพาะยอดซื้อ ตามไฟล์เดิม</span></div><div class="bd">
+    <div class="chartbox"><canvas id="monthly" aria-label="กราฟรายรับ รายจ่าย ออม+ลงทุน รายเดือน"></canvas></div>
+    <details><summary>ดูเป็นตาราง</summary>${summaryTable(y)}</details></div></section>
+  </div>`;
+}
+function summaryTable(y){
+  const ys=yearSummary(S,y);
+  return `<div class="scroller"><table><thead><tr><th>ลำดับ</th><th>เดือนที่</th><th>รายรับ</th><th>รายจ่าย</th><th>ออม + ลงทุน</th><th>%การลงทุน</th></tr></thead><tbody>
+  ${ys.rows.map(r=>`<tr><td>${r.m}</td><td>${MONTHS_FULL[r.m-1]}</td><td class="n">${fmt(r.inc)}</td><td class="n">${fmt(r.exp)}</td><td class="n">${fmt(r.inv)}</td><td class="n">${pct(r.pct)}</td></tr>`).join('')}
+  <tr class="sum"><td></td><td>รวมทั้งปี</td><td class="n">${fmt(ys.tot.inc)}</td><td class="n">${fmt(ys.tot.exp)}</td><td class="n">${fmt(ys.tot.inv)}</td><td class="n">${pct(ys.tot.pct)}</td></tr></tbody></table></div>`;
+}
+function afterDash(){
+  if(!dashCtx)return;
+  drawPie('pie-income',dashCtx.gi.items);drawPie('pie-expense',dashCtx.ge.items);drawPie('pie-invest',dashCtx.gv.items);
+  drawMonthly('monthly',dashCtx.y);
+}
+
+/* ---------- VIEW: plan ---------- */
+const SEC_ORDER=[['income','s-income'],['need','s-need'],['extra','s-extra'],['save','s-save']];
+function ensureYear(y){
+  if(!S.plan[y]){S.plan[y]={income:[],need:[],extra:[],save:[],secs:[]};}
+  return S.plan[y];
+}
+function viewPlan(){
+  const y=+S.settings.planYear;
+  const py=S.plan[y];
+  const years=[...new Set([...Object.keys(S.plan).map(Number),y])].sort((a,b)=>a-b);
+  const next=Math.max(...years)+1;
+  const monthHead=c=>MONTHS.map((m,i)=>`<th>${c?c(i):m}</th>`).join('');
+  let body='';
+  if(!py){
+    body=`<div class="empty">ยังไม่มีแผนของปี ${y}<br><br><button class="b pri" data-act="plannew">สร้างแผนว่างปี ${y}</button>${S.plan[y-1]?` <button class="b" data-act="plancopy" data-from="${y-1}">คัดลอกแผนจากปี ${y-1}</button>`:''}</div>`;
+  }else{
+    const sec=(k,cls,title,custom)=>{
+      const rows=py[k]||[];
+      return `<tr class="sec ${cls}" data-sechdr="${k}"><th><div class="sechd"><button class="ico w drag" data-drag="sec" data-sec="${k}" title="ลากเพื่อย้ายหัวข้อ (หรือโฟกัสแล้วกดลูกศรขึ้น/ลง)" aria-label="ย้ายหัวข้อ ${h(title)}">⠿</button><input type="text" data-b="st" data-sec="${k}" value="${h(title)}" aria-label="ชื่อหัวข้อหลัก">${custom?`<button class="ico w" data-act="delsec" data-sec="${k}" title="ลบหัวข้อนี้ทั้งหมด (เลิกทำได้)" aria-label="ลบหัวข้อ">×</button>`:''}</div></th>${MONTHS.map(m=>`<th>${m}</th>`).join('')}<th>รวม ${y}</th></tr>`+
+      rows.map(r=>`<tr data-rowid="${r.id}" data-sec="${k}"><td class="nm-in"><button class="ico drag" data-drag="row" data-sec="${k}" data-id="${r.id}" title="ลากเพื่อย้ายแถว (หรือโฟกัสแล้วกดลูกศรขึ้น/ลง)" aria-label="ย้ายแถว ${h(r.name)}">⠿</button><input type="text" value="${h(r.name)}" data-b="pn" data-sec="${k}" data-id="${r.id}" aria-label="ชื่อรายการ"><button class="ico fill" data-act="fillrow" data-sec="${k}" data-id="${r.id}" title="ใช้ค่าแรกที่กรอก เติมทุกเดือน">⇥</button><button class="ico" data-act="delrow" data-sec="${k}" data-id="${r.id}" title="ลบแถว">×</button></td>
+        ${r.m.map((v,i)=>`<td><input type="number" step="any" value="${v==null?'':+(+v).toFixed(2)}" data-b="pc" data-sec="${k}" data-id="${r.id}" data-i="${i}" aria-label="${h(r.name)} ${MONTHS[i]}"></td>`).join('')}
+        <td class="n" data-rt="${r.id}">${fmt(sum(r.m))}</td></tr>`).join('')+
+      `<tr class="total" data-secend="${k}"><th>รวม</th>${MONTHS.map((m,i)=>`<td class="n" data-st="${k}:${i}">0</td>`).join('')}<td class="n" data-st="${k}:y">0</td></tr>
+       <tr data-secend="${k}" data-addrow="1"><td colspan="14" style="text-align:left"><button class="b" data-act="addrow" data-sec="${k}">+ เพิ่มรายการ</button></td></tr>`;
+    };
+    body=`<div class="scroller"><table class="plan"><thead>
+      <tr class="stat"><th>การวางแผนรายรับ รายจ่าย ${y}</th>${MONTHS.map((m,i)=>`<th><span class="dot" data-dot="${i}"></span> ${m}</th>`).join('')}<th>รวมทั้งปี</th></tr>
+      <tr class="total"><th>รายรับเหลือให้วางแผน :</th>${MONTHS.map((m,i)=>`<td class="n" data-st="remain:${i}">0</td>`).join('')}<td class="n" data-st="remain:y">0</td></tr>
+      <tr class="total"><th>รวมจำนวนทั้งหมด (รายจ่าย + เก็บออม) :</th>${MONTHS.map((m,i)=>`<td class="n" data-st="out:${i}">0</td>`).join('')}<td class="n" data-st="out:y">0</td></tr>
+      </thead><tbody>${secList(S,y).map(x=>sec(x.key,{income:'s-income',expense:(x.key==='need'?'s-need':'s-extra'),invest:'s-save'}[x.kind],x.title,!x.base)).join('')}</tbody></table></div>
+      <div class="addsec"><b>เพิ่มหัวข้อหลัก</b>
+        <input type="text" id="newSecName" placeholder="ชื่อหัวข้อ เช่น ท่องเที่ยว, ผ่อนสินค้า, ครอบครัว" aria-label="ชื่อหัวข้อใหม่">
+        <select id="newSecKind" aria-label="ประเภทหัวข้อ"><option value="expense">นับเป็นรายจ่าย</option><option value="income">นับเป็นรายรับ</option><option value="invest">นับเป็นเก็บออม / ลงทุน</option></select>
+        <button class="b pri" data-act="addsec">+ เพิ่มหัวข้อ</button>
+        <span class="note">ประเภทกำหนดว่ารายการในหัวข้อนี้ไปอยู่กลุ่มไหนในแดชบอร์ด และรวมเข้าช่อง “รวมจำนวนทั้งหมด” อย่างไร</span></div>`;
+  }
+  return `<div class="stack"><div class="banner">การวางแผนรายรับ รายจ่าย</div>
+  <div class="ctl"><div class="yrs" role="group" aria-label="เลือกปี">${years.map(v=>`<button data-act="planyear" data-y="${v}" aria-pressed="${v===y}">${v}</button>`).join('')}<button class="b" data-act="planaddyear" data-y="${next}" title="เพิ่มแผนปี ${next}">+ ปี ${next}</button></div>
+  ${py&&S.plan[y-1]?`<button class="b" data-act="plancopy" data-from="${y-1}" title="แทนที่แผนปี ${y} ด้วยแผนปี ${y-1} (เลิกทำได้)">คัดลอกแผนจากปี ${y-1}</button>`:''}${py?`<button class="b" data-act="plandelyear" title="ลบแผนปี ${y} (เลิกทำได้)">ลบแผนปี ${y}</button>`:''}
+  <span class="note">จุดสีเขียว = แบ่งเงินครบพอดี · จุดสีแดง = ยังมีเงินเหลือหรือเกินที่ต้องจัดสรร</span></div>
+  <section class="card"><div class="bd" style="padding:0">${body}</div></section></div>`;
+}
+function updatePlanTotals(){
+  const y=+S.settings.planYear,t=planTotals(S,y);
+  const set=(sel,v)=>{const e=$(sel);if(e)e.textContent=fmt(v);};
+  [...secList(S,y).map(x=>x.key),'remain','out'].forEach(k=>{
+    const a=t.sec[k]||t[k]||[];
+    for(let i=0;i<12;i++)set(`[data-st="${k}:${i}"]`,a[i]||0);
+    set(`[data-st="${k}:y"]`,sum(a));
+  });
+  $$('[data-dot]').forEach(d=>{const i=+d.dataset.dot;d.className='dot '+(Math.abs(t.remain[i])>0.005?'no':'ok');});
+  const py=S.plan[y];
+  secList(S,y).forEach(x=>((py&&py[x.key])||[]).forEach(r=>{const e=$(`[data-rt="${r.id}"]`);if(e)e.textContent=fmt(sum(r.m));}));
+}
+/* ---------- reorder: move rows / sections (drag with mouse or touch, or arrow keys on the handle) ---------- */
+function curPlan(){return S.plan[+S.settings.planYear];}
+function fullOrder(py){return secList(S,+S.settings.planYear).map(x=>x.key);}
+function moveRow(fromSec,id,toSec,where,refId){
+  const py=curPlan();if(!py)return false;
+  const src=py[fromSec]||[];const i=src.findIndex(r=>r.id===id);if(i<0)return false;
+  const dst=py[toSec];if(!dst)return false;
+  const row=src.splice(i,1)[0];
+  let j=dst.length;
+  if(where==='start')j=0;
+  else if(where==='end')j=dst.length;
+  else{const k=dst.findIndex(r=>r.id===refId);j=k<0?dst.length:(where==='before'?k:k+1);}
+  dst.splice(j,0,row);
+  return true;
+}
+function moveSec(key,refKey,where){
+  const py=curPlan();if(!py||key===refKey)return false;
+  const ord=fullOrder(py).filter(k=>k!==key);
+  const k=ord.indexOf(refKey);if(k<0)return false;
+  ord.splice(where==='before'?k:k+1,0,key);
+  py.order=ord;return true;
+}
+function moveBy(kind,sec,id,delta){
+  const py=curPlan();if(!py)return false;
+  if(kind==='sec'){
+    const ord=fullOrder(py),i=ord.indexOf(sec),j=i+delta;
+    if(i<0||j<0||j>=ord.length)return false;
+    ord.splice(i,1);ord.splice(j,0,sec);py.order=ord;return true;
+  }
+  const ord=fullOrder(py),si=ord.indexOf(sec),arr=py[sec]||[],i=arr.findIndex(r=>r.id===id);
+  if(i<0)return false;
+  if(delta<0){
+    if(i>0){const r=arr.splice(i,1)[0];arr.splice(i-1,0,r);return true;}
+    if(si>0){const r=arr.splice(i,1)[0];py[ord[si-1]].push(r);return true;}
+  }else{
+    if(i<arr.length-1){const r=arr.splice(i,1)[0];arr.splice(i+1,0,r);return true;}
+    if(si<ord.length-1){const r=arr.splice(i,1)[0];py[ord[si+1]].unshift(r);return true;}
+  }
+  return false;
+}
+let drag=null;
+function clearDrop(){$$('.drop-before,.drop-after').forEach(e=>e.classList.remove('drop-before','drop-after'));}
+function endDrag(){
+  clearDrop();$$('.drag-src').forEach(e=>e.classList.remove('drag-src'));
+  document.body.classList.remove('dragging');
+  if(drag&&drag.el&&drag.pid!=null){try{drag.el.releasePointerCapture(drag.pid);}catch(_){}}
+  drag=null;
+}
+function dragTarget(e){
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  const tr=el&&el.closest&&el.closest('table.plan tbody tr');
+  if(!tr)return null;
+  const key=tr.dataset.sec||tr.dataset.sechdr||tr.dataset.secend;if(!key)return null;
+  const r=tr.getBoundingClientRect(),upper=e.clientY<r.top+r.height/2;
+  if(drag.kind==='row'){
+    if(tr.dataset.rowid)return {tr,sec:key,where:upper?'before':'after',ref:tr.dataset.rowid,cls:upper?'drop-before':'drop-after'};
+    if(tr.dataset.sechdr)return {tr,sec:key,where:'start',cls:'drop-after'};
+    return {tr,sec:key,where:'end',cls:'drop-before'};
+  }
+  if(key===drag.sec)return null;
+  const hdr=$(`tr[data-sechdr="${key}"]`),ends=$$(`tr[data-secend="${key}"]`),last=ends[ends.length-1];
+  if(!hdr||!last)return null;
+  const a=hdr.getBoundingClientRect(),b=last.getBoundingClientRect();
+  const before=e.clientY<(a.top+b.bottom)/2;
+  return before?{tr:hdr,sec:key,where:'before',cls:'drop-before'}:{tr:last,sec:key,where:'after',cls:'drop-after'};
+}
+document.addEventListener('pointerdown',e=>{
+  const hd=e.target.closest&&e.target.closest('[data-drag]');if(!hd||(e.button&&e.button>0))return;
+  e.preventDefault();
+  drag={kind:hd.dataset.drag,sec:hd.dataset.sec,id:hd.dataset.id,el:hd,pid:e.pointerId,target:null};
+  try{hd.setPointerCapture(e.pointerId);}catch(_){}
+  document.body.classList.add('dragging');
+  if(drag.kind==='row'){const tr=hd.closest('tr');if(tr)tr.classList.add('drag-src');}
+  else $$(`tr[data-sec="${drag.sec}"],tr[data-sechdr="${drag.sec}"],tr[data-secend="${drag.sec}"]`).forEach(t=>t.classList.add('drag-src'));
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  if(e.clientY<70)window.scrollBy(0,-18);else if(e.clientY>window.innerHeight-70)window.scrollBy(0,18);
+  clearDrop();
+  const t=dragTarget(e);drag.target=t;
+  if(t)t.tr.classList.add(t.cls);
+});
+document.addEventListener('pointerup',e=>{
+  if(!drag)return;
+  const d=drag,t=drag.target;endDrag();
+  if(!t)return;
+  snapshot(['plan']);
+  const done=d.kind==='row'?moveRow(d.sec,d.id,t.sec,t.where,t.ref):moveSec(d.sec,t.sec,t.where);
+  if(!done){undoSnap=null;return;}
+  markDirty('plan');render();toast(d.kind==='row'?'ย้ายแถวแล้ว':'ย้ายหัวข้อแล้ว',true);
+});
+document.addEventListener('pointercancel',()=>{if(drag)endDrag();});
+document.addEventListener('keydown',e=>{
+  const hd=e.target.closest&&e.target.closest('[data-drag]');
+  if(!hd||(e.key!=='ArrowUp'&&e.key!=='ArrowDown'))return;
+  e.preventDefault();
+  const kind=hd.dataset.drag,sec=hd.dataset.sec,id=hd.dataset.id;
+  snapshot(['plan']);
+  if(!moveBy(kind,sec,id,e.key==='ArrowUp'?-1:1)){undoSnap=null;return;}
+  markDirty('plan');render();
+  const nx=kind==='row'?$(`[data-drag="row"][data-id="${id}"]`):$(`[data-drag="sec"][data-sec="${sec}"]`);
+  if(nx)nx.focus();
+  toast(kind==='row'?'ย้ายแถวแล้ว':'ย้ายหัวข้อแล้ว',true);
+});
+function findRow(sec,id){const py=S.plan[+S.settings.planYear];return py&&py[sec].find(r=>r.id===id);}
+
+/* ---------- VIEW: records ---------- */
+function txQ(t){return norm([t.name,t.note,t.group,t.date,ymOf(t)].join(' '));}
+function txRowsHTML(type,list,names){
+  const dl=`<datalist id="dl-${type}">${names.map(n=>`<option value="${h(n)}">`).join('')}</datalist>`;
+  const ymCell=t=>{const y=ymOf(t);return `<td class="ro">${y?h(y):''}${(!t.date&&t.ym)?' <span class="warn-chip" title="ไม่มีวันที่ ใช้เดือนที่พิมพ์ไว้เอง">⚠ ไม่มีวันที่</span>':''}</td>`;};
+  const del=t=>`<td><button class="ico" data-act="deltx" data-id="${t.id}" title="ลบรายการ">×</button></td>`;
+  const np=t=>`<span class="warn-chip np" ${(names.length&&norm(t.name)&&!names.some(n=>norm(n)===norm(t.name)))?'':'hidden'} title="ชื่อนี้ไม่อยู่ในแผนของปีนี้ จะแสดงเป็น “นอกแผน” ในแดชบอร์ด">⚠ นอกแผน</span>`;
+  const common=t=>`<td><input type="date" value="${h(t.date||'')}" data-b="tx" data-f="date" data-id="${t.id}" aria-label="วันที่"></td>
+    <td><input type="text" list="dl-${type}" value="${h(t.name)}" data-b="tx" data-f="name" data-id="${t.id}" aria-label="ชื่อรายการ">${np(t)}</td>
+    <td><input type="number" step="any" class="${(t.amount!=null&&t.amount<0)||t.amount==null?'bad':''}" value="${t.amount==null?'':t.amount}" data-b="tx" data-f="amount" data-id="${t.id}" aria-label="จำนวนเงิน" title="${t.amount==null?'ยังไม่ใส่จำนวนเงิน':(t.amount<0?'จำนวนเงินติดลบ':'')}"></td>`;
+  if(type==='invest')return dl+list.map(t=>`<tr data-q="${h(txQ(t))}">${common(t)}<td><select data-b="tx" data-f="side" data-id="${t.id}" aria-label="ซื้อ/ขาย"><option ${t.side!=='ขาย'?'selected':''}>ซื้อ</option><option ${t.side==='ขาย'?'selected':''}>ขาย</option></select></td>
+    <td><input type="text" value="${h(t.group||'')}" data-b="tx" data-f="group" data-id="${t.id}" aria-label="กลุ่ม"></td>${ymCell(t)}${del(t)}</tr>`).join('');
+  return dl+list.map(t=>`<tr data-q="${h(txQ(t))}">${common(t)}<td><input type="text" value="${h(t.note||'')}" data-b="tx" data-f="note" data-id="${t.id}" aria-label="รายละเอียดอื่นๆ"></td>${ymCell(t)}${del(t)}</tr>`).join('');
+}
+function txCard(type,title,cls,y,m){
+  const list=txSel(S,type,y,m).slice().sort((a,b)=>(a.date||'9999')<(b.date||'9999')?-1:(a.date||'9999')>(b.date||'9999')?1:0);
+  const g=GROUPS[type];
+  const names=planNames(S,y,groupKeys(S,y,type));
+  const head=type==='invest'
+    ?'<th>วันที่</th><th>ชื่อรายการ</th><th>จำนวนเงิน</th><th>ซื้อ/ขาย</th><th>กลุ่ม</th><th>Year-Month</th><th></th>'
+    :'<th>วันที่</th><th>ชื่อรายการ</th><th>จำนวนเงิน</th><th>รายละเอียดอื่นๆ</th><th>Year-Month</th><th></th>';
+  return `<section class="card"><div class="hd"><h2>${title}</h2><button class="b pri" data-act="addtx" data-type="${type}">+ เพิ่มรายการ</button></div>
+  <div class="scroller"><table class="tx t-${cls}"><thead><tr>${head}</tr></thead><tbody id="tb-${type}">${txRowsHTML(type,list,names)||''}</tbody></table></div>
+  ${list.length?'':'<div class="empty">ยังไม่มีรายการในช่วงที่เลือก กด “+ เพิ่มรายการ” เพื่อเริ่มบันทึก</div>'}
+  <div class="bd" style="padding-top:10px"><b>รวม${type==='invest'?'ซื้อ':''}: <span class="num" data-tt="${type}">${fmt(sum(list.filter(t=>type!=='invest'||t.side!=='ขาย').map(t=>t.amount)))}</span> บาท</b>${type==='invest'?` <span class="note">· ขาย <span data-tt="sell">${fmt(sum(list.filter(t=>t.side==='ขาย').map(t=>t.amount)))}</span> บาท</span>`:''}</div></section>`;
+}
+function recKpis(y,m){
+  const inc=sum(txSel(S,'income',y,m).map(t=>t.amount)),exp=sum(txSel(S,'expense',y,m).map(t=>t.amount));
+  const inv=sum(txSel(S,'invest',y,m).filter(t=>t.side!=='ขาย').map(t=>t.amount));
+  const lab=m==='all'?'ทั้งปี '+y:MONTHS_FULL[m-1]+' '+y;
+  return `<div class="kpis" id="recKpis">
+   <div class="kpi"><h3>รายรับรวม</h3><div class="big">${fmt(inc)}</div><small>${lab}</small></div>
+   <div class="kpi"><h3>รายจ่ายรวม</h3><div class="big">${fmt(exp)}</div><small>${lab}</small></div>
+   <div class="kpi"><h3>ออม + ลงทุน</h3><div class="big">${fmt(inv)}</div><small>นับเฉพาะยอดซื้อ · ${lab}</small></div>
+   <div class="kpi"><h3>คงเหลือ</h3><div class="big">${inc-exp<0?'-':''}${fmt(Math.abs(inc-exp))}</div><small>รายรับ − รายจ่าย</small></div></div>`;
+}
+function viewRec(){
+  const y=+S.settings.txYear,m=S.settings.txMonth==='all'?'all':parseInt(S.settings.txMonth,10);
+  return `<div class="stack"><div class="banner">บันทึกรายรับ รายจ่าย ออม + ลงทุน</div>
+  <div class="ctl"><label>เลือกปี <select data-b="sel" data-key="txYear">${yearOpts(y)}</select></label>
+  <label>เลือกเดือน <select data-b="sel" data-key="txMonth">${monthOpts(S.settings.txMonth,'all','ทั้งปี')}</select></label>
+  <label>ค้นหา <input type="search" id="recQ" value="${h(recQ)}" placeholder="ชื่อ / รายละเอียด / วันที่" data-b="recq" aria-label="ค้นหารายการ"></label>
+  <span class="note" id="recQn"></span>
+  <span class="note">วันที่เป็นตัวกำหนดว่ารายการอยู่ปีและเดือนไหน</span></div>
+  ${recKpis(y,m)}
+  <div class="tx3">${txCard('income','รายรับ','inc',y,m)}${txCard('expense','ค่าใช้จ่าย','exp',y,m)}${txCard('invest','การเก็บออม + ลงทุน','inv',y,m)}</div>
+  <section class="card"><div class="hd"><h2>สรุปปี ${y}</h2></div><div class="bd">${summaryTable(y)}</div></section></div>`;
+}
+function applyRecFilter(){
+  const q=norm(recQ);let hid=0;
+  $$('#view tr[data-q]').forEach(tr=>{const hide=!!q&&!tr.dataset.q.includes(q);tr.hidden=hide;if(hide)hid++;});
+  const n=$('#recQn');if(n)n.textContent=q?('ซ่อน '+hid+' รายการที่ไม่ตรงกับคำค้น · ยอดรวมยังนับทุกรายการ'):'';
+}
+function updateRecTotals(){
+  const y=+S.settings.txYear,m=S.settings.txMonth==='all'?'all':parseInt(S.settings.txMonth,10);
+  const k=$('#recKpis');if(k)k.outerHTML=recKpis(y,m);
+  ['income','expense','invest'].forEach(type=>{
+    const l=txSel(S,type,y,m);const e=$(`[data-tt="${type}"]`);
+    if(e)e.textContent=fmt(sum(l.filter(t=>type!=='invest'||t.side!=='ขาย').map(t=>t.amount)));
+    if(type==='invest'){const s=$('[data-tt="sell"]');if(s)s.textContent=fmt(sum(l.filter(t=>t.side==='ขาย').map(t=>t.amount)));}
+  });
+}
+
+/* ---------- VIEW: investments ---------- */
+let invCtx=null;
+function viewInv(){
+  const T=investTable(S);
+  const st=S.settings;
+  const names=T.rows.map(r=>r.name);
+  const port=st.dashPort&&names.some(n=>norm(n)===norm(st.dashPort))?st.dashPort:(names[0]||'');
+  const from=st.invFrom||'',to=st.invTo||'';
+  const rep=S.tx.filter(t=>t.type==='invest'&&(!from||(t.date||'')>=from)&&(!to||(t.date||'')<=to)&&(st.invPort==='ทั้งหมด'||norm(t.name)===norm(st.invPort)))
+    .sort((a,b)=>(a.date||'')<(b.date||'')?-1:1);
+  const buy=sum(rep.filter(t=>t.side!=='ขาย').map(t=>t.amount)),sell=sum(rep.filter(t=>t.side==='ขาย').map(t=>t.amount));
+  invCtx={T,port};
+  const hasCur=T.rows.some(r=>r.current!=null);
+  return `<div class="stack"><div class="banner">Dashboard การลงทุน</div>
+  <div class="kpis">
+    <div class="kpi"><h3>ลงทุนรวมทั้งหมด</h3><div class="big">${fmt(T.totInvested)}</div><small>ซื้อ − ขาย ทุกรายการ</small></div>
+    <div class="kpi"><h3>มูลค่าปัจจุบัน</h3><div class="big">${hasCur?fmt(T.totCurrent):'-'}</div><small>กรอกแล้ว ${T.coverage} รายการ</small></div>
+    <div class="kpi"><h3>กำไร / ขาดทุน %</h3><div class="big">${T.pct==null?'-':(T.pct*100).toFixed(2)+'%'}</div><small>คำนวณเฉพาะรายการที่กรอกมูลค่าแล้ว</small></div></div>
+  <div class="two">
+   <section class="card"><div class="hd"><h2>กรอกมูลค่าการเงินลงทุนของเรา</h2><button class="b pri" data-act="addpf">+ เพิ่มมูลค่า</button></div>
+    <div class="scroller"><table class="tx"><thead><tr><th>วันที่กรอก</th><th>ชื่อรายการ</th><th>มูลค่าปัจจุบัน</th><th></th></tr></thead><tbody>
+    <datalist id="dl-pf">${names.map(n=>`<option value="${h(n)}">`).join('')}</datalist>
+    ${S.pf.map(p=>`<tr><td><input type="date" value="${h(p.date||'')}" data-b="pf" data-f="date" data-id="${p.id}" aria-label="วันที่กรอก"></td><td><input type="text" list="dl-pf" value="${h(p.name)}" data-b="pf" data-f="name" data-id="${p.id}" aria-label="ชื่อรายการ"></td><td><input type="number" step="any" value="${p.value==null?'':p.value}" data-b="pf" data-f="value" data-id="${p.id}" aria-label="มูลค่าปัจจุบัน"></td><td><button class="ico" data-act="delpf" data-id="${p.id}" title="ลบ">×</button></td></tr>`).join('')}
+    </tbody></table></div>${S.pf.length?'':'<div class="empty">ยังไม่ได้กรอกมูลค่าปัจจุบัน กด “+ เพิ่มมูลค่า”</div>'}
+    <div class="bd note">ใช้ค่าล่าสุดตามวันที่กรอกของแต่ละรายการ เป็นมูลค่าปัจจุบัน</div></section>
+   <section class="card"><div class="hd"><h2>มูลค่าเงินลงทุน เทียบมูลค่าปัจจุบัน</h2></div>
+    <div class="scroller"><table class="t-inv"><thead><tr><th>ชื่อรายการ</th><th>จำนวนเงินลงทุน</th><th>มูลค่าปัจจุบัน</th><th>Cap Gain/Lost</th></tr></thead><tbody>
+    ${T.rows.map(r=>`<tr><td class="nm">${h(r.name)}</td><td class="n">${fmt(r.invested)}</td><td class="n">${r.current==null?'-':fmt(r.current)}</td><td class="n" style="color:${r.gain==null?'inherit':r.gain>=0?'var(--good)':'var(--bad)'}">${r.gain==null?'-':(r.gain>=0?'+':'')+fmt(r.gain)}</td></tr>`).join('')}
+    <tr class="sum"><td>รวม</td><td class="n">${fmt(T.totInvested)}</td><td class="n">${hasCur?fmt(T.totCurrent):'-'}</td><td></td></tr></tbody></table></div></section>
+  </div>
+  <div class="two">
+   <section class="card"><div class="hd"><h2>เงินลงทุน เทียบมูลค่าปัจจุบัน</h2></div><div class="bd"><div class="chartbox"><canvas id="invBar" aria-label="กราฟเงินลงทุนเทียบมูลค่าปัจจุบัน"></canvas></div></div></section>
+   <section class="card"><div class="hd"><h2>สัดส่วนการลงทุนตามมูลค่าปัจจุบัน</h2><span class="note">${hasCur?'':'ยังไม่มีมูลค่าปัจจุบัน แสดงตามเงินลงทุน'}</span></div><div class="bd" id="invPieBox"></div></section>
+  </div>
+  <section class="card"><div class="hd"><h2>รายงานการซื้อขายพอร์ทการลงทุนรายตัว</h2>
+   <div class="ctl"><label>วันที่จาก <input type="date" value="${h(from)}" data-b="set" data-key="invFrom"></label><label>วันที่ถึง <input type="date" value="${h(to)}" data-b="set" data-key="invTo"></label>
+   <label>พอร์ท <select data-b="set" data-key="invPort"><option>ทั้งหมด</option>${names.map(n=>`<option ${norm(n)===norm(st.invPort)?'selected':''}>${h(n)}</option>`).join('')}</select></label></div></div>
+   <div class="bd"><div class="kpis" style="margin-bottom:12px"><div class="kpi"><h3>มูลค่าซื้อรวม</h3><div class="big">${fmt(buy)}</div></div><div class="kpi"><h3>มูลค่าขายรวม</h3><div class="big">${fmt(sell)}</div></div><div class="kpi"><h3>Net (ซื้อ − ขาย)</h3><div class="big">${buy-sell<0?'-':''}${fmt(Math.abs(buy-sell))}</div></div></div>
+   <div class="scroller"><table class="t-inv"><thead><tr><th>วันที่</th><th>ชื่อรายการ</th><th>จำนวนเงิน</th><th>ซื้อ/ขาย</th><th>กลุ่ม</th></tr></thead><tbody>
+   ${rep.map(t=>`<tr><td>${h(t.date||'-')}</td><td class="nm">${h(t.name)}</td><td class="n">${fmt(t.amount)}</td><td>${h(t.side||'')}</td><td style="text-align:left">${h(t.group||'')}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">ไม่มีรายการในช่วงวันที่ที่เลือก</td></tr>'}
+   </tbody></table></div></div></section>
+  <section class="card"><div class="hd"><h2>ข้อมูลสำหรับกราฟมูลค่าเงินลงทุนแต่ละตัว</h2>
+   <label class="ctl">พอร์ท <select data-b="set" data-key="dashPort">${names.map(n=>`<option ${n===port?'selected':''}>${h(n)}</option>`).join('')}</select></label></div>
+   <div class="bd"><div class="chartbox" style="height:240px"><canvas id="invLine" aria-label="มูลค่าปัจจุบันที่กรอกตามวันที่"></canvas></div></div></section>
+  </div>`;
+}
+function afterInv(){
+  if(!invCtx)return;
+  const {T,port}=invCtx;
+  const hasCur=T.rows.some(r=>r.current!=null);
+  const lab=T.rows.map(r=>r.name);
+  mkChart('invBar',{type:'bar',data:{labels:lab,datasets:[
+    {label:'จำนวนเงินลงทุน',data:T.rows.map(r=>r.invested),backgroundColor:cv('--s1'),borderRadius:4,borderSkipped:'bottom'},
+    {label:'มูลค่าปัจจุบัน',data:T.rows.map(r=>r.current==null?null:r.current),backgroundColor:cv('--s2'),borderRadius:4,borderSkipped:'bottom'}]},options:barOpts()});
+  const key=hasCur?'current':'invested';
+  const items=pieData(T.rows.map(r=>({name:r.name,v:r[key]})).map(r=>({name:r.name,actual:r.v})),'actual');
+  const box=$('#invPieBox');
+  if(box){box.innerHTML=pieHTML('invPie',items);drawPie('invPie',items);}
+  const pts=S.pf.filter(p=>norm(p.name)===norm(port)&&p.value!=null).sort((a,b)=>(a.date||'')<(b.date||'')?-1:1);
+  mkChart('invLine',{type:'line',data:{labels:pts.map(p=>p.date||'-'),datasets:[{label:port,data:pts.map(p=>p.value),borderColor:cv('--s1'),backgroundColor:cv('--s1'),borderWidth:2,pointRadius:4,pointBackgroundColor:cv('--s1'),pointBorderColor:cv('--surface'),pointBorderWidth:2,tension:.25}]},
+    options:{...barOpts(),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmt(c.parsed.y)}}}}});
+}
+
+/* ---------- VIEW: settings & checks ---------- */
+function viewSet(){
+  const st=S.settings;
+  const years=[2025,2026,2027,2028,2029,2030];
+  return `<div class="stack"><div class="banner">ตั้งค่าและสำรองข้อมูล</div>
+  ${syncCard()}
+  <div class="cols">
+   <section class="card"><div class="hd"><h2>ตั้งค่า</h2></div><div class="bd">
+    <div class="fieldrow"><label for="s-rate">อัตราการออมที่ต้องการ (%)</label><input id="s-rate" type="number" step="1" min="0" max="100" value="${+(st.targetRate*100).toFixed(2)}" data-b="set" data-key="targetRate"></div>
+    <div class="fieldrow"><label for="s-et">เป้าเงินสำรองฉุกเฉิน (บาท)</label><input id="s-et" type="number" step="1000" value="${st.emergencyTarget}" data-b="set" data-key="emergencyTarget"></div>
+    <div class="fieldrow"><label for="s-ek">คำค้นของรายการเงินสำรองฉุกเฉิน</label><input id="s-ek" type="text" value="${h(st.emergencyKeyword)}" data-b="set" data-key="emergencyKeyword"></div>
+    <div class="fieldrow"><label>ปีที่นับในหน้าการลงทุน</label><div class="chk">${years.map(y=>`<label><input type="checkbox" ${st.invYears[y]!==false?'checked':''} data-b="invyear" data-y="${y}"> ${y}</label>`).join('')}</div></div>
+    <p class="note">ทุกค่าที่แก้ไขบันทึกอัตโนมัติ ไม่ต้องกดบันทึก</p></div></section>
+   <section class="card"><div class="hd"><h2>สำรองและนำเข้าข้อมูล</h2></div><div class="bd">
+    <p class="note">ดาวน์โหลดข้อมูลทั้งหมดเป็นไฟล์ JSON เก็บไว้ หรือวางข้อมูลที่เคยสำรองไว้เพื่อกู้คืน</p>
+    <p><button class="b pri" data-act="export">ดาวน์โหลดไฟล์สำรอง (.json)</button> <span class="note">สำรองล่าสุด: ${st.lastBackup?h(st.lastBackup):'ยังไม่เคย'}</span></p>
+    <p class="note" style="margin-bottom:6px">ส่งออกเป็น CSV เพื่อเปิดใน Excel / Google Sheets (ไฟล์นี้ใช้ดูหรือวิเคราะห์ ไม่ใช่ไฟล์สำรอง)</p>
+    <p><button class="b" data-act="csvtx">ส่งออกรายการทั้งหมด (CSV)</button> <button class="b" data-act="csvplan">ส่งออกแผน (CSV)</button></p>
+    <p><label class="note">เลือกไฟล์สำรอง (.json) <input type="file" id="bkfile" accept=".json,application/json"></label></p>
+    <textarea id="bk" placeholder="หรือวางข้อมูลสำรอง JSON ที่นี่เพื่อนำเข้า" aria-label="ข้อมูลสำรอง"></textarea>
+    <p><button class="b" data-act="import">นำเข้าจากข้อความด้านบน</button> <span class="note" id="bkmsg"></span></p></div></section>
+  </div>
+  </div>`;
+}
+
+/* ---------- connect (standalone site) ---------- */
+function viewSetup(){
+  const c=ghCfg()||{};
+  return `<div class="stack"><div class="banner">เชื่อมต่อที่เก็บข้อมูล</div>
+  <section class="card"><div class="hd"><h2>เก็บข้อมูลไว้ที่ GitHub ของคุณเอง (ซิงก์มือถือ/คอม)</h2></div><div class="bd setup">
+   ${setupMsg?`<p class="err" role="alert">${h(setupMsg)}</p>`:''}
+   <p class="note">ข้อมูลการเงินจะถูกเก็บเป็นไฟล์ data.json ใน repository แบบ <b>Private</b> ของคุณ เว็บนี้อ่านและเขียนไฟล์นั้นผ่าน token ที่คุณสร้างเอง ไม่ผ่านเซิร์ฟเวอร์ของใคร</p>
+   <div class="fieldrow"><label for="gh-owner">ชื่อผู้ใช้ GitHub</label><input id="gh-owner" type="text" autocapitalize="none" autocomplete="off" value="${h(c.owner||'')}" placeholder="เช่น wisanukorn-arch"></div>
+   <div class="fieldrow"><label for="gh-repo">ชื่อ repository ข้อมูล</label><input id="gh-repo" type="text" autocapitalize="none" autocomplete="off" value="${h(c.repo||'money-plan-data')}"></div>
+   <div class="fieldrow"><label for="gh-token">Token</label><input id="gh-token" type="password" autocomplete="off" autocapitalize="none" value="" placeholder="github_pat_…"></div>
+   <p><button class="b pri" data-act="ghconnect">เชื่อมต่อและทดสอบ</button> <span class="note" id="ghmsg"></span></p>
+   <details><summary>วิธีสร้าง token (ทำครั้งเดียว ต่อ 1 เครื่อง/เบราว์เซอร์ต้องวาง token ใหม่)</summary>
+    <ol class="list">
+     <li>ที่ github.com ไปที่ Settings → Developer settings → Personal access tokens → <b>Fine-grained tokens</b> → Generate new token</li>
+     <li>Repository access: เลือก <b>Only select repositories</b> แล้วเลือกเฉพาะ repository ข้อมูล (เช่น money-plan-data)</li>
+     <li>Permissions → Repository permissions → <b>Contents: Read and write</b></li>
+     <li>ตั้งวันหมดอายุตามต้องการ แล้วกด Generate และคัดลอก token มาวางด้านบน</li>
+    </ol>
+    <p class="note">token เก็บในเบราว์เซอร์ของเครื่องนี้เท่านั้น จำกัดสิทธิ์ที่ repository เดียว ถ้าเครื่องหาย ให้เข้า GitHub แล้วลบ token นั้นทิ้งได้ทันที</p></details>
+  </div></section>
+  <section class="card"><div class="bd"><p class="note">ยังไม่อยากเชื่อมต่อ? ใช้เก็บเฉพาะในเบราว์เซอร์เครื่องนี้ได้ (ไม่ซิงก์ และข้อมูลอาจหายถ้าล้างข้อมูลเบราว์เซอร์) แล้วค่อยเชื่อมต่อทีหลังในหน้า “ตั้งค่า”</p>
+   <p><button class="b" data-act="uselocal">ใช้เฉพาะในเครื่องนี้ก่อน</button></p></div></section></div>`;
+}
+async function ghConnect(){
+  const msg=$('#ghmsg');
+  const cfg={owner:($('#gh-owner').value||'').trim(),repo:($('#gh-repo').value||'').trim(),token:($('#gh-token').value||'').trim()};
+  if(!cfg.token&&ghCfg()&&ghCfg().owner===cfg.owner&&ghCfg().repo===cfg.repo)cfg.token=ghCfg().token;
+  if(!cfg.owner||!cfg.repo||!cfg.token){if(msg)msg.textContent='กรอกให้ครบทั้ง 3 ช่อง';return;}
+  if(msg)msg.textContent='กำลังทดสอบ…';
+  try{
+    const res=await ghLoad(cfg);
+    localStorage.setItem(GH_KEY,JSON.stringify(cfg));localStorage.removeItem('mp:localonly');
+    mode='github';setupMsg='';conflict=false;
+    if(res.data){applyLoaded(res.data);}
+    else{const local=localGet();applyLoaded(local);if(hasData)DOCS.forEach(markDirty);}
+    setStatus('saved');render();toast(res.data?'เชื่อมต่อแล้ว โหลดข้อมูลจาก GitHub':'เชื่อมต่อแล้ว (ยังไม่มีข้อมูลใน repository)');
+  }catch(e){if(msg)msg.textContent='เชื่อมต่อไม่ได้: '+e.message;}
+}
+function syncCard(){
+  if(mode==='claude')return '';
+  const c=ghCfg();
+  return `<section class="card"><div class="hd"><h2>การซิงก์ข้อมูล</h2></div><div class="bd">
+   ${mode==='github'?`<p>เชื่อมต่อ GitHub: <b>${h(c.owner)}/${h(c.repo)}</b></p>
+     <p class="note">เมื่อเปิดหน้านี้อีกครั้งหรือสลับกลับมา ระบบจะดึงข้อมูลล่าสุดมาให้อัตโนมัติ (ถ้าไม่มีการแก้ไขค้างอยู่)</p>
+     <p><button class="b" data-act="ghpull">ซิงก์ตอนนี้</button> <button class="b" data-act="ghdisconnect">ตัดการเชื่อมต่อ</button></p>`
+    :`<p>ตอนนี้ข้อมูลเก็บเฉพาะในเบราว์เซอร์เครื่องนี้ (ไม่ซิงก์กับเครื่องอื่น)</p>
+     <p><button class="b pri" data-act="ghsetup">เชื่อมต่อ GitHub เพื่อซิงก์</button></p>`}
+  </div></section>`;
+}
+/* ---------- empty state ---------- */
+function viewEmpty(){
+  return `<div class="stack"><section class="card"><div class="bd" style="text-align:center;padding:40px 16px">
+  <h2 style="margin-bottom:8px">ยังไม่มีข้อมูล</h2><p class="note">หน้านี้พร้อมใช้งานแล้ว เริ่มจากแผนว่าง หรือนำเข้าไฟล์สำรอง JSON ในหน้า “ตั้งค่า”</p>
+  <p><button class="b pri" data-act="startblank">เริ่มด้วยข้อมูลว่าง</button></p></div></section></div>`;
+}
+
+/* ---------- router / render ---------- */
+const VIEWS={dash:[viewDash,afterDash],plan:[viewPlan,null],rec:[viewRec,null],inv:[viewInv,afterInv],set:[viewSet,null]};
+function render(){
+  const root=$('#view');
+  const sc=$$('.scroller',root).map(e=>e.scrollLeft);
+  const wy=window.scrollY;
+  killCharts();
+  document.body.classList.toggle('nosetup',mode==='setup');
+  if(mode==='setup'){root.innerHTML=viewSetup();$$('.tabs button').forEach(b=>b.setAttribute('aria-selected','false'));return;}
+  if(!hasData&&tab!=='set'){root.innerHTML=viewEmpty();}
+  else{root.innerHTML=VIEWS[tab][0]();}
+  $$('.scroller',root).forEach((e,i)=>{if(sc[i])e.scrollLeft=sc[i];});
+  if(hasData||tab==='set'){if(VIEWS[tab][1])VIEWS[tab][1]();if(tab==='plan')updatePlanTotals();if(tab==='rec')applyRecFilter();}
+  const bk=$('#bkbar');if(bk)bk.innerHTML=backupBar();
+  $$('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
+  window.scrollTo(0,wy);
+}
+function go(t){tab=t;try{localStorage.setItem('mp:tab',t);}catch(e){}render();window.scrollTo(0,0);}
+
+/* ---------- events ---------- */
+function txById(id){return S.tx.find(t=>t.id===id);}
+document.addEventListener('input',e=>{
+  const t=e.target,b=t.dataset&&t.dataset.b;if(!b)return;
+  if(b==='recq'){recQ=t.value;applyRecFilter();return;}
+  if(b==='qa'){if(!qa)return;qa[t.dataset.f]=t.value;if(t.dataset.f==='date'){const dl=$('#qa-dl');if(dl)dl.innerHTML=qaNames().map(n=>`<option value="${h(n)}">`).join('');}return;}
+  if(b==='pc'){
+    const r=findRow(t.dataset.sec,t.dataset.id);if(!r)return;
+    const v=t.value===''?null:parseFloat(t.value);r.m[+t.dataset.i]=isFinite(v)?v:null;markDirty('plan');updatePlanTotals();
+  }else if(b==='pn'){const r=findRow(t.dataset.sec,t.dataset.id);if(r){r.name=t.value;markDirty('plan');}}
+  else if(b==='st'){const cs=((S.plan[+S.settings.planYear]||{}).secs||[]).find(x=>x.key===t.dataset.sec);if(cs){cs.title=t.value;markDirty('plan');}else{S.settings.secTitles[t.dataset.sec]=t.value;markDirty('settings');}}
+  else if(b==='tx'){
+    const r=txById(t.dataset.id);if(!r)return;const f=t.dataset.f;
+    if(f==='amount'){const v=t.value===''?null:parseFloat(t.value);r.amount=isFinite(v)?v:null;markDirty('tx');updateRecTotals();
+      const bad=r.amount==null||r.amount<0;t.classList.toggle('bad',bad);t.title=r.amount==null?'ยังไม่ใส่จำนวนเงิน':(r.amount<0?'จำนวนเงินติดลบ':'');}
+    else if(f==='name'||f==='note'||f==='group'){r[f]=t.value;markDirty('tx');
+      if(f==='name'){const chip=t.parentElement&&t.parentElement.querySelector('.np');
+        if(chip){const nm=planNames(S,yOf(r)||+S.settings.txYear,groupKeys(S,yOf(r)||+S.settings.txYear,r.type));chip.hidden=!(nm.length&&norm(r.name)&&!nm.some(n=>norm(n)===norm(r.name)));}}}
+  }else if(b==='pf'){
+    const r=S.pf.find(p=>p.id===t.dataset.id);if(!r)return;const f=t.dataset.f;
+    if(f==='name'){r.name=t.value;markDirty('pf');}
+    else if(f==='value'){const v=t.value===''?null:parseFloat(t.value);r.value=isFinite(v)?v:null;markDirty('pf');}
+  }else if(b==='goal'){S.settings.goals[+t.dataset.i]=t.value;markDirty('settings');}
+  else if(b==='set'&&t.type==='text'&&t.dataset.key==='emergencyKeyword'){S.settings.emergencyKeyword=t.value;markDirty('settings');}
+  else if(b==='set'&&t.type==='number'){
+    const v=parseFloat(t.value);if(!isFinite(v))return;
+    if(t.dataset.key==='targetRate')S.settings.targetRate=v/100;else S.settings[t.dataset.key]=v;markDirty('settings');
+  }
+});
+document.addEventListener('change',e=>{
+  if(e.target&&e.target.id==='bkfile'){
+    const f=e.target.files&&e.target.files[0];if(!f)return;
+    const rd=new FileReader();rd.onload=()=>{const ta=$('#bk');if(ta)ta.value=String(rd.result);const m=$('#bkmsg');if(m)m.textContent='โหลดไฟล์แล้ว กด “นำเข้าจากข้อความด้านบน” เพื่อยืนยัน';};rd.readAsText(f);return;
+  }
+  const t=e.target,b=t.dataset&&t.dataset.b;if(!b)return;
+  if(b==='qa'){if(qa&&t.tagName==='SELECT')qa[t.dataset.f]=t.value;return;}
+  if(b==='sel'||(b==='set'&&(t.tagName==='SELECT'||t.type==='date'))){
+    const k=t.dataset.key;let v=t.value;
+    if(k==='year'||k==='txYear')v=parseInt(v,10);
+    S.settings[k]=v;markDirty('settings');render();
+  }else if(b==='tx'){
+    const r=txById(t.dataset.id);if(!r)return;const f=t.dataset.f;
+    if(f==='date'){const old=ymOf(r);r.date=t.value||null;if(!t.value&&old)r.ym=old;else delete r.ym;markDirty('tx');render();}
+    else if(f==='side'){r.side=t.value;markDirty('tx');updateRecTotals();}
+  }else if(b==='pf'&&(t.dataset.f==='date')){const r=S.pf.find(p=>p.id===t.dataset.id);if(r){r.date=t.value||null;markDirty('pf');render();}}
+  else if(b==='pf'){render();}
+  else if(b==='invyear'){S.settings.invYears[t.dataset.y]=t.checked;markDirty('settings');}
+  else if(b==='goal'||b==='st'||b==='pn'){/* already saved on input */}
+});
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act],[data-tab]');if(!t)return;
+  if(t.dataset.tab){go(t.dataset.tab);return;}
+  const a=t.dataset.act,d=t.dataset;
+  const py=()=>ensureYear(+S.settings.planYear);
+  if(a==='planyear'){S.settings.planYear=+d.y;markDirty('settings');render();}
+  else if(a==='planaddyear'){const y=+d.y;S.settings.planYear=y;ensureYear(y);markDirty('plan');markDirty('settings');render();}
+  else if(a==='plannew'){ensureYear(+S.settings.planYear);markDirty('plan');render();}
+  else if(a==='plancopy'){const y=+S.settings.planYear,src=S.plan[+d.from];if(src){snapshot(['plan']);
+      const c={secs:(src.secs||[]).map(x=>({...x})),order:(src.order||[]).slice()};[...SEC_KEYS,...c.secs.map(x=>x.key)].forEach(k=>{c[k]=(src[k]||[]).map(r=>({id:uid('p'),name:r.name,m:r.m.slice()}));});
+      S.plan[y]=c;markDirty('plan');render();toast('คัดลอกแผนจากปี '+d.from+' มาปี '+y+' แล้ว',true);}}
+  else if(a==='addsec'){const nm=($('#newSecName').value||'').trim();
+    if(!nm){toast('ใส่ชื่อหัวข้อก่อน');$('#newSecName').focus();return;}
+    const p=py();p.secs=p.secs||[];const key='x'+Date.now().toString(36);
+    p.secs.push({key,title:nm,kind:$('#newSecKind').value});p[key]=[{id:uid('p'),name:'',m:Array(12).fill(null)}];
+    markDirty('plan');render();toast('เพิ่มหัวข้อ “'+nm+'” แล้ว');
+    const inp=$$(`[data-b="pn"][data-sec="${key}"]`).pop();if(inp){if(inp.scrollIntoView)inp.scrollIntoView({block:'center'});inp.focus();}}
+  else if(a==='delsec'){const p=py();removing('ลบหัวข้อแล้ว',['plan'],()=>{delete p[d.sec];p.secs=(p.secs||[]).filter(x=>x.key!==d.sec);});}
+  else if(a==='plandelyear'){const y=+S.settings.planYear;removing('ลบแผนปี '+y+' แล้ว',['plan'],()=>{delete S.plan[y];});}
+  else if(a==='addrow'){py()[d.sec].push({id:uid('p'),name:'',m:Array(12).fill(null)});markDirty('plan');render();
+    const inp=$$(`[data-b="pn"][data-sec="${d.sec}"]`).pop();if(inp)inp.focus();}
+  else if(a==='delrow'){removing('ลบแถวในแผนแล้ว',['plan'],()=>{const p=py();p[d.sec]=p[d.sec].filter(r=>r.id!==d.id);});}
+  else if(a==='fillrow'){const r=findRow(d.sec,d.id);if(r){const f=r.m.find(v=>v!=null);if(f!=null){r.m=r.m.map(()=>f);markDirty('plan');render();}}}
+  else if(a==='addtx'){
+    const y=+S.settings.txYear,m=S.settings.txMonth==='all'?'all':parseInt(S.settings.txMonth,10);
+    const n={id:uid('t'),type:d.type,date:defaultDate(y,m),name:'',amount:null};
+    if(d.type==='invest'){n.side='ซื้อ';n.group='';}else n.note='';
+    S.tx.push(n);markDirty('tx');render();
+    const inp=$(`[data-b="tx"][data-f="name"][data-id="${n.id}"]`);if(inp){if(inp.scrollIntoView)inp.scrollIntoView({block:"center"});inp.focus();}
+  }
+  else if(a==='deltx'){removing('ลบรายการแล้ว',['tx'],()=>{S.tx=S.tx.filter(r=>r.id!==d.id);});}
+  else if(a==='addpf'){S.pf.push({id:uid('v'),date:todayStr(),name:'',value:null});markDirty('pf');render();}
+  else if(a==='delpf'){removing('ลบมูลค่าแล้ว',['pf'],()=>{S.pf=S.pf.filter(r=>r.id!==d.id);});}
+  else if(a==='goaladd'){S.settings.goals.push('');markDirty('settings');render();const l=$$('[data-b="goal"]').pop();if(l)l.focus();}
+  else if(a==='goaldel'){removing('ลบเป้าหมายแล้ว',['settings'],()=>{S.settings.goals.splice(+d.i,1);});}
+  else if(a==='startblank'){hasData=true;ensureYear(+S.settings.planYear);markDirty('settings');markDirty('plan');markDirty('tx');markDirty('pf');render();}
+  else if(a==='export')exportJSON();
+  else if(a==='csvtx')exportCSV('tx');
+  else if(a==='csvplan')exportCSV('plan');
+  else if(a==='import')importJSON();
+  else if(a==='undo')doUndo();
+  else if(a==='ghconnect')ghConnect();
+  else if(a==='ghsetup'){mode='setup';setupMsg='';render();setStatus('saved');}
+  else if(a==='uselocal'){localStorage.setItem('mp:localonly','1');mode='local';const lg=localGet();applyLoaded(lg);setStatus('saved');render();}
+  else if(a==='ghpull')ghPull(true);
+  else if(a==='ghdisconnect'){DOCS.forEach(k=>{try{localStorage.setItem('mp:'+k,JSON.stringify(S[k]));}catch(_){}});localStorage.removeItem(GH_KEY);localStorage.setItem('mp:localonly','1');mode='local';conflict=false;setStatus('saved');render();toast('ตัดการเชื่อมต่อแล้ว ข้อมูลล่าสุดถูกเก็บไว้ในเบราว์เซอร์เครื่องนี้');}
+  else if(a==='conflictload'){ghPull(true);}
+  else if(a==='conflictforce'){ghSha=ghRemoteSha;conflict=false;DOCS.forEach(markDirty);}
+  else if(a==='bksnooze'){const x=new Date();x.setDate(x.getDate()+7);S.settings.remindSnooze=x.getFullYear()+'-'+pad(x.getMonth()+1)+'-'+pad(x.getDate());markDirty('settings');render();}
+  else if(a==='quick')openQuick();
+  else if(a==='qaclose')closeQuick();
+  else if(a==='qatype'){if(qa){qa.type=d.type;qa.name='';renderQuick('#qa-name');}}
+  else if(a==='qasave')saveQuick(!!d.more);
+});
+function backupText(){return JSON.stringify({app:'the-money-plan',version:1,exportedAt:new Date().toISOString(),settings:S.settings,plan:S.plan,tx:S.tx,pf:S.pf},null,1);}
+function daysSince(ds){const a=new Date(ds+'T00:00:00');return isNaN(a)?0:Math.floor((Date.now()-a.getTime())/86400000);}
+function backupBar(){
+  const lb=S.settings.lastBackup;if(!lb||!S.tx.length)return '';
+  const sn=S.settings.remindSnooze;if(sn&&todayStr()<=sn)return '';
+  const n=daysSince(lb);if(n<30)return '';
+  return `<div class="bk" role="status"><span>ยังไม่ได้สำรองข้อมูลมา ${n} วันแล้ว</span><button class="b pri" data-act="export">ดาวน์โหลดไฟล์สำรอง</button><button class="b" data-act="bksnooze">เตือนอีกครั้งใน 7 วัน</button></div>`;
+}
+async function saveFile(filename,data){
+  if(window.claude&&window.claude.use){
+    const dl=await window.claude.use('downloads');
+    if(!dl)throw new Error('na');
+    await dl.save({filename,data});return;
+  }
+  const type=/\.csv$/.test(filename)?'text/csv;charset=utf-8':'application/json';
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=filename;
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+}
+function fallbackShow(txt,note){
+  if(tab!=='set')go('set');
+  const ta=$('#bk');if(ta){ta.value=txt;ta.select();}
+  const m=$('#bkmsg');if(m)m.textContent=note;
+}
+async function exportJSON(){
+  const txt=backupText();
+  try{
+    await saveFile('the-money-plan-backup-'+todayStr()+'.json',txt);
+    S.settings.lastBackup=todayStr();delete S.settings.remindSnooze;markDirty('settings');render();
+    toast('ส่งไฟล์สำรองให้ดาวน์โหลดแล้ว');
+  }catch(e){fallbackShow(txt,'ดาวน์โหลดไม่ได้ในมุมมองนี้ คัดลอกข้อความ JSON นี้เก็บไว้แทน');}
+}
+const csvCell=v=>{v=v==null?'':String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+const csvText=rows=>'﻿'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
+async function exportCSV(kind){
+  let rows,name;
+  if(kind==='tx'){
+    const TN={income:'รายรับ',expense:'ค่าใช้จ่าย',invest:'ออม+ลงทุน'};
+    rows=[['ประเภท','วันที่','ปี-เดือน','ชื่อรายการ','จำนวนเงิน','ซื้อ/ขาย','กลุ่ม','หมายเหตุ']];
+    S.tx.slice().sort((a,b)=>(a.date||'')<(b.date||'')?-1:(a.date||'')>(b.date||'')?1:0)
+      .forEach(t=>rows.push([TN[t.type]||t.type,t.date||'',ymOf(t),t.name,t.amount,t.type==='invest'?(t.side||'ซื้อ'):'',t.group||'',t.note||'']));
+    name='the-money-plan-records-';
+  }else{
+    rows=[['ปี','หมวด','ชื่อรายการ',...MONTHS,'รวมทั้งปี']];
+    Object.keys(S.plan).sort().forEach(y=>secList(S,+y).forEach(x=>(S.plan[y][x.key]||[]).forEach(r=>rows.push([y,x.title,r.name,...r.m.map(v=>v==null?'':v),sum(r.m)]))));
+    name='the-money-plan-plan-';
+  }
+  const txt=csvText(rows);
+  try{await saveFile(name+todayStr()+'.csv',txt);toast('ส่งไฟล์ CSV ให้ดาวน์โหลดแล้ว');}
+  catch(e){fallbackShow(txt,'ดาวน์โหลดไม่ได้ในมุมมองนี้ คัดลอกข้อความ CSV นี้ไปวางในโปรแกรมตารางได้');}
+}
+function importJSON(){
+  const msg=$('#bkmsg');
+  try{
+    const o=JSON.parse($('#bk').value);
+    if(!o||typeof o!=='object'||!o.tx||!o.plan)throw new Error('รูปแบบไม่ถูกต้อง');
+    snapshot(['settings','plan','tx','pf']);
+    applyLoaded({settings:o.settings,plan:o.plan,tx:o.tx,pf:o.pf||[]});
+    DOCS.forEach(markDirty);hasData=true;render();
+    toast('นำเข้าข้อมูลแล้ว กำลังบันทึกอัตโนมัติ',true);
+  }catch(e){if(msg)msg.textContent='นำเข้าไม่ได้: '+e.message;}
+}
+
+/* ---------- quick add (works from every tab) ---------- */
+function qaNames(){
+  const y=parseInt((qa.date||'').slice(0,4),10)||+S.settings.txYear;
+  const out=planNames(S,y,groupKeys(S,y,qa.type));
+  S.tx.filter(t=>t.type===qa.type&&norm(t.name)).forEach(t=>{if(!out.some(n=>norm(n)===norm(t.name)))out.push(String(t.name).trim());});
+  return out;
+}
+function openQuick(type){
+  qa={type:type||qaLastType,date:todayStr(),name:'',amount:'',note:'',side:'ซื้อ',group:''};
+  renderQuick('#qa-name');
+}
+function renderQuick(focus){
+  const el=$('#qa');if(!el||!qa)return;
+  const T={expense:'ค่าใช้จ่าย',income:'รายรับ',invest:'ออม + ลงทุน'};
+  el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="qa-t">
+   <div class="sh-hd"><h2 id="qa-t">บันทึกรายการ</h2><button class="ico" data-act="qaclose" aria-label="ปิด">×</button></div>
+   <div class="seg" role="group" aria-label="ประเภท">${['expense','income','invest'].map(k=>`<button data-act="qatype" data-type="${k}" aria-pressed="${qa.type===k}">${T[k]}</button>`).join('')}</div>
+   <div class="qf">
+    <label>วันที่<input type="date" id="qa-date" value="${h(qa.date)}" data-b="qa" data-f="date"></label>
+    <label>ชื่อรายการ<input type="text" id="qa-name" list="qa-dl" value="${h(qa.name)}" data-b="qa" data-f="name" autocomplete="off" placeholder="เลือกจากแผน หรือพิมพ์เอง"><datalist id="qa-dl">${qaNames().map(n=>`<option value="${h(n)}">`).join('')}</datalist></label>
+    <label>จำนวนเงิน (บาท)<input type="number" inputmode="decimal" step="any" min="0" id="qa-amount" value="${h(qa.amount)}" data-b="qa" data-f="amount"></label>
+    ${qa.type==='invest'
+      ?`<label>ซื้อ / ขาย<select data-b="qa" data-f="side"><option ${qa.side!=='ขาย'?'selected':''}>ซื้อ</option><option ${qa.side==='ขาย'?'selected':''}>ขาย</option></select></label><label>กลุ่ม<input type="text" value="${h(qa.group)}" data-b="qa" data-f="group"></label>`
+      :`<label>รายละเอียดอื่นๆ<input type="text" value="${h(qa.note)}" data-b="qa" data-f="note"></label>`}
+   </div>
+   <div class="qa-err" id="qa-err" role="alert"></div>
+   <div class="sh-ft"><button class="b" data-act="qaclose">ยกเลิก</button><button class="b" data-act="qasave" data-more="1">บันทึกและเพิ่มอีก</button><button class="b pri" data-act="qasave">บันทึก</button></div></div>`;
+  el.hidden=false;document.body.classList.add('modal-open');
+  const f=$(focus||'#qa-name');if(f)f.focus();
+}
+function closeQuick(){const el=$('#qa');if(el){el.hidden=true;el.innerHTML='';}qa=null;document.body.classList.remove('modal-open');}
+function saveQuick(more){
+  if(!qa)return;
+  const err=$('#qa-err');const bad=m=>{if(err)err.textContent=m;};
+  const amt=parseFloat(qa.amount);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(qa.date||''))return bad('กรุณาเลือกวันที่');
+  if(!norm(qa.name))return bad('กรุณาใส่ชื่อรายการ');
+  if(!isFinite(amt)||amt<=0)return bad('จำนวนเงินต้องมากกว่า 0');
+  snapshot(['tx']);
+  const n={id:uid('t'),type:qa.type,date:qa.date,name:String(qa.name).trim(),amount:amt};
+  if(qa.type==='invest'){n.side=qa.side==='ขาย'?'ขาย':'ซื้อ';n.group=qa.group||'';}else n.note=qa.note||'';
+  S.tx.push(n);markDirty('tx');qaLastType=qa.type;
+  const msg='บันทึกแล้ว: '+n.name+' '+fmt(n.amount)+' บาท ('+ymOf(n)+')';
+  if(more){qa.name='';qa.amount='';qa.note='';render();renderQuick('#qa-name');toast(msg,true);}
+  else{closeQuick();render();toast(msg,true);}
+}
+document.addEventListener('keydown',e=>{
+  if(!qa)return;
+  if(e.key==='Escape'){closeQuick();}
+  else if(e.key==='Enter'&&e.target&&e.target.tagName==='INPUT'){e.preventDefault();saveQuick(false);}
+});
+
+/* ---------- boot ---------- */
+async function boot(){
+  const tabsEl=$('.tabs');
+  tabsEl.innerHTML=[['dash','แดชบอร์ดงบ'],['plan','วางแผน'],['rec','บันทึกรายการ'],['inv','การลงทุน'],['set','ตั้งค่า']].map(([k,l])=>`<button role="tab" data-tab="${k}" aria-selected="false">${l}</button>`).join('');
+  try{const t=localStorage.getItem('mp:tab');if(t&&VIEWS[t])tab=t;}catch(e){}
+  await loadAll();
+  setStatus('saved');
+  render();
+  const rr=()=>{if(loaded)render();};
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rr);}catch(e){}
+  new MutationObserver(rr).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flush();else ghPullIfChanged();});
+  window.addEventListener('focus',ghPullIfChanged);
+  window.addEventListener('online',()=>{if(dirty.size)flush();});
+}
+boot();
+
+</script>
+
+</body>
+</html>
