@@ -1055,8 +1055,8 @@ function viewSetup(){
   <section class="card"><div class="hd"><h2>เก็บข้อมูลไว้ที่ GitHub ของคุณเอง (ซิงก์มือถือ/คอม)</h2></div><div class="bd setup">
    ${setupMsg?`<p class="err" role="alert">${h(setupMsg)}</p>`:''}
    <p class="note">ข้อมูลการเงินจะถูกเก็บเป็นไฟล์ data.json ใน repository แบบ <b>Private</b> ของคุณ เว็บนี้อ่านและเขียนไฟล์นั้นผ่าน token ที่คุณสร้างเอง ไม่ผ่านเซิร์ฟเวอร์ของใคร</p>
-   <div class="fieldrow"><label for="gh-owner">ชื่อผู้ใช้ GitHub</label><input id="gh-owner" type="text" autocapitalize="none" autocomplete="off" value="${h(c.owner||'')}" placeholder="ชื่อผู้ใช้ GitHub ของคุณ"></div>
-   <div class="fieldrow"><label for="gh-repo">ชื่อ repository ข้อมูล</label><input id="gh-repo" type="text" autocapitalize="none" autocomplete="off" value="${h(c.repo||'money-plan-data')}"></div>
+   <div class="fieldrow"><label for="gh-owner">ชื่อผู้ใช้ GitHub (ไม่ต้องใส่เครื่องหมายอื่น)</label><input id="gh-owner" type="text" autocapitalize="none" autocomplete="off" value="${h(c.owner||'')}" placeholder="ชื่อผู้ใช้ GitHub ของคุณ"></div>
+   <div class="fieldrow"><label for="gh-repo">ชื่อ repository ข้อมูล (เฉพาะชื่อ เช่น money-plan-data)</label><input id="gh-repo" type="text" autocapitalize="none" autocomplete="off" value="${h(c.repo||'money-plan-data')}"></div>
    <div class="fieldrow"><label for="gh-token">Token</label><input id="gh-token" type="password" autocomplete="off" autocapitalize="none" value="" placeholder="github_pat_…"></div>
    <p><button class="b pri" data-act="ghconnect">เชื่อมต่อและทดสอบ</button> <span class="note" id="ghmsg"></span></p>
    <details><summary>วิธีสร้าง token (ทำครั้งเดียว ต่อ 1 เครื่อง/เบราว์เซอร์ต้องวาง token ใหม่)</summary>
@@ -1073,7 +1073,15 @@ function viewSetup(){
 }
 async function ghConnect(){
   const msg=$('#ghmsg');
-  const cfg={owner:($('#gh-owner').value||'').trim(),repo:($('#gh-repo').value||'').trim(),token:($('#gh-token').value||'').trim()};
+  /* tolerate pasted text: "owner," / "owner/repo" / github.com URLs / a stray word like "repository" */
+  let owner=($('#gh-owner').value||'').trim(),repo=($('#gh-repo').value||'').trim();
+  const fromUrl=x=>{const m=String(x).match(/github\.com\/([^\/\s]+)\/([^\/\s#?]+)/i);return m?[m[1],m[2]]:null;};
+  const u=fromUrl(repo)||fromUrl(owner);if(u){owner=u[0];repo=u[1];}
+  if(repo.includes('/')){const p=repo.split('/').filter(Boolean);if(p.length>=2){owner=p[p.length-2];repo=p[p.length-1];}else repo=p[0]||'';}
+  owner=owner.replace(/^@/,'').replace(/[^A-Za-z0-9._-]+/g,' ').trim().split(/\s+/).pop()||'';
+  repo=repo.replace(/\.git$/,'').replace(/[^A-Za-z0-9._-]+/g,' ').trim().split(/\s+/).pop()||'';
+  if($('#gh-owner'))$('#gh-owner').value=owner;if($('#gh-repo'))$('#gh-repo').value=repo;
+  const cfg={owner,repo,token:($('#gh-token').value||'').replace(/\s+/g,'')};
   if(!cfg.token&&ghCfg()&&ghCfg().owner===cfg.owner&&ghCfg().repo===cfg.repo)cfg.token=ghCfg().token;
   if(!cfg.owner||!cfg.repo||!cfg.token){if(msg)msg.textContent='กรอกให้ครบทั้ง 3 ช่อง';return;}
   if(msg)msg.textContent='กำลังทดสอบ…';
