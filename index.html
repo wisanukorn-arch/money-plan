@@ -1055,7 +1055,7 @@ function viewSetup(){
   <section class="card"><div class="hd"><h2>เก็บข้อมูลไว้ที่ GitHub ของคุณเอง (ซิงก์มือถือ/คอม)</h2></div><div class="bd setup">
    ${setupMsg?`<p class="err" role="alert">${h(setupMsg)}</p>`:''}
    <p class="note">ข้อมูลการเงินจะถูกเก็บเป็นไฟล์ data.json ใน repository แบบ <b>Private</b> ของคุณ เว็บนี้อ่านและเขียนไฟล์นั้นผ่าน token ที่คุณสร้างเอง ไม่ผ่านเซิร์ฟเวอร์ของใคร</p>
-   <div class="fieldrow"><label for="gh-owner">ชื่อผู้ใช้ GitHub</label><input id="gh-owner" type="text" autocapitalize="none" autocomplete="off" value="${h(c.owner||'')}" placeholder="เช่น wisanukorn-arch"></div>
+   <div class="fieldrow"><label for="gh-owner">ชื่อผู้ใช้ GitHub</label><input id="gh-owner" type="text" autocapitalize="none" autocomplete="off" value="${h(c.owner||'')}" placeholder="ชื่อผู้ใช้ GitHub ของคุณ"></div>
    <div class="fieldrow"><label for="gh-repo">ชื่อ repository ข้อมูล</label><input id="gh-repo" type="text" autocapitalize="none" autocomplete="off" value="${h(c.repo||'money-plan-data')}"></div>
    <div class="fieldrow"><label for="gh-token">Token</label><input id="gh-token" type="password" autocomplete="off" autocapitalize="none" value="" placeholder="github_pat_…"></div>
    <p><button class="b pri" data-act="ghconnect">เชื่อมต่อและทดสอบ</button> <span class="note" id="ghmsg"></span></p>
