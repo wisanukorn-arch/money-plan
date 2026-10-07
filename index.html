@@ -246,6 +246,13 @@ body.nosetup .fab{display:none}
 .conflictbar[hidden]{display:none}
 .conflictbar span{margin-right:auto}
 
+/* paid tick */
+table.plan .pcw{display:flex;align-items:center;gap:2px}
+table.plan .pdk{width:18px;height:18px;min-height:0;flex:none;accent-color:var(--inc);cursor:pointer}
+table.plan td.paid input[data-b="pc"]{text-decoration:line-through;color:var(--muted);opacity:.75}
+table.plan td.paid{background:color-mix(in srgb,var(--inc) 8%,transparent)}
+table.plan tr.pdrow td,table.plan tr.pdrow th{font-weight:600;font-size:12px}
+
 </style>
 <div class="bar"><div class="row"><div class="brand"><i></i>The money plan</div><nav class="tabs" role="tablist" aria-label="เมนู"></nav><div class="save" id="save" data-s="saved" aria-live="polite"><span class="d"></span><span class="t">กำลังโหลด…</span></div></div></div>
 <div class="wrap" id="bkbar"></div>
@@ -428,6 +435,7 @@ const DEFAULT_SETTINGS={year:2026,month:'9',targetRate:0.2,goals:[],emergencyTar
 
 let S={settings:{...DEFAULT_SETTINGS},plan:{},tx:[],pf:[]};
 let db=null,tab='dash',loaded=false,hasData=false;
+let payMode=false;
 let recQ='',qa=null,qaLastType='expense';
 let undoSnap=null,toastTimer=null;
 const charts={};
@@ -753,11 +761,11 @@ function viewPlan(){
   if(!py){
     body=`<div class="empty">ยังไม่มีแผนของปี ${y}<br><br><button class="b pri" data-act="plannew">สร้างแผนว่างปี ${y}</button>${S.plan[y-1]?` <button class="b" data-act="plancopy" data-from="${y-1}">คัดลอกแผนจากปี ${y-1}</button>`:''}</div>`;
   }else{
-    const sec=(k,cls,title,custom)=>{
+    const sec=(k,cls,title,custom,canPay)=>{
       const rows=py[k]||[];
       return `<tr class="sec ${cls}" data-sechdr="${k}"><th><div class="sechd"><button class="ico w drag" data-drag="sec" data-sec="${k}" title="ลากเพื่อย้ายหัวข้อ (หรือโฟกัสแล้วกดลูกศรขึ้น/ลง)" aria-label="ย้ายหัวข้อ ${h(title)}">⠿</button><input type="text" data-b="st" data-sec="${k}" value="${h(title)}" aria-label="ชื่อหัวข้อหลัก">${custom?`<button class="ico w" data-act="delsec" data-sec="${k}" title="ลบหัวข้อนี้ทั้งหมด (เลิกทำได้)" aria-label="ลบหัวข้อ">×</button>`:''}</div></th>${MONTHS.map(m=>`<th>${m}</th>`).join('')}<th>รวม ${y}</th></tr>`+
       rows.map(r=>`<tr data-rowid="${r.id}" data-sec="${k}"><td class="nm-in"><button class="ico drag" data-drag="row" data-sec="${k}" data-id="${r.id}" title="ลากเพื่อย้ายแถว (หรือโฟกัสแล้วกดลูกศรขึ้น/ลง)" aria-label="ย้ายแถว ${h(r.name)}">⠿</button><input type="text" value="${h(r.name)}" data-b="pn" data-sec="${k}" data-id="${r.id}" aria-label="ชื่อรายการ"><button class="ico fill" data-act="fillrow" data-sec="${k}" data-id="${r.id}" title="ใช้ค่าแรกที่กรอก เติมทุกเดือน">⇥</button><button class="ico" data-act="delrow" data-sec="${k}" data-id="${r.id}" title="ลบแถว">×</button></td>
-        ${r.m.map((v,i)=>`<td><input type="number" step="any" value="${v==null?'':+(+v).toFixed(2)}" data-b="pc" data-sec="${k}" data-id="${r.id}" data-i="${i}" aria-label="${h(r.name)} ${MONTHS[i]}"></td>`).join('')}
+        ${r.m.map((v,i)=>{const pd=!!(r.paid&&r.paid[i]);return `<td class="${pd?'paid':''}"><div class="pcw"><input type="number" step="any" value="${v==null?'':+(+v).toFixed(2)}" data-b="pc" data-sec="${k}" data-id="${r.id}" data-i="${i}" aria-label="${h(r.name)} ${MONTHS[i]}">${canPay&&(payMode||pd)?`<input type="checkbox" class="pdk" data-b="pd" data-sec="${k}" data-id="${r.id}" data-i="${i}" ${pd?'checked':''} title="จ่ายแล้ว" aria-label="จ่ายแล้ว ${h(r.name)} ${MONTHS[i]}">`:''}</div></td>`;}).join('')}
         <td class="n" data-rt="${r.id}">${fmt(sum(r.m))}</td></tr>`).join('')+
       `<tr class="total" data-secend="${k}"><th>รวม</th>${MONTHS.map((m,i)=>`<td class="n" data-st="${k}:${i}">0</td>`).join('')}<td class="n" data-st="${k}:y">0</td></tr>
        <tr data-secend="${k}" data-addrow="1"><td colspan="14" style="text-align:left"><button class="b" data-act="addrow" data-sec="${k}">+ เพิ่มรายการ</button></td></tr>`;
@@ -766,7 +774,9 @@ function viewPlan(){
       <tr class="stat"><th>การวางแผนรายรับ รายจ่าย ${y}</th>${MONTHS.map((m,i)=>`<th><span class="dot" data-dot="${i}"></span> ${m}</th>`).join('')}<th>รวมทั้งปี</th></tr>
       <tr class="total"><th>รายรับเหลือให้วางแผน :</th>${MONTHS.map((m,i)=>`<td class="n" data-st="remain:${i}">0</td>`).join('')}<td class="n" data-st="remain:y">0</td></tr>
       <tr class="total"><th>รวมจำนวนทั้งหมด (รายจ่าย + เก็บออม) :</th>${MONTHS.map((m,i)=>`<td class="n" data-st="out:${i}">0</td>`).join('')}<td class="n" data-st="out:y">0</td></tr>
-      </thead><tbody>${secList(S,y).map(x=>sec(x.key,{income:'s-income',expense:(x.key==='need'?'s-need':'s-extra'),invest:'s-save'}[x.kind],x.title,!x.base)).join('')}</tbody></table></div>
+      <tr class="total pdrow"><th>จ่ายแล้ว (ที่ติ๊ก) :</th>${MONTHS.map((m,i)=>`<td class="n" data-pd="paid:${i}">0</td>`).join('')}<td class="n" data-pd="paid:y">0</td></tr>
+      <tr class="total pdrow"><th>ค้างจ่าย :</th>${MONTHS.map((m,i)=>`<td class="n" data-pd="left:${i}">0</td>`).join('')}<td class="n" data-pd="left:y">0</td></tr>
+      </thead><tbody>${secList(S,y).map(x=>sec(x.key,{income:'s-income',expense:(x.key==='need'?'s-need':'s-extra'),invest:'s-save'}[x.kind],x.title,!x.base,x.kind!=='income')).join('')}</tbody></table></div>
       <div class="addsec"><b>เพิ่มหัวข้อหลัก</b>
         <input type="text" id="newSecName" placeholder="ชื่อหัวข้อ เช่น ท่องเที่ยว, ผ่อนสินค้า, ครอบครัว" aria-label="ชื่อหัวข้อใหม่">
         <select id="newSecKind" aria-label="ประเภทหัวข้อ"><option value="expense">นับเป็นรายจ่าย</option><option value="income">นับเป็นรายรับ</option><option value="invest">นับเป็นเก็บออม / ลงทุน</option></select>
@@ -776,6 +786,7 @@ function viewPlan(){
   return `<div class="stack"><div class="banner">การวางแผนรายรับ รายจ่าย</div>
   <div class="ctl"><div class="yrs" role="group" aria-label="เลือกปี">${years.map(v=>`<button data-act="planyear" data-y="${v}" aria-pressed="${v===y}">${v}</button>`).join('')}<button class="b" data-act="planaddyear" data-y="${next}" title="เพิ่มแผนปี ${next}">+ ปี ${next}</button></div>
   ${py&&S.plan[y-1]?`<button class="b" data-act="plancopy" data-from="${y-1}" title="แทนที่แผนปี ${y} ด้วยแผนปี ${y-1} (เลิกทำได้)">คัดลอกแผนจากปี ${y-1}</button>`:''}${py?`<button class="b" data-act="plandelyear" title="ลบแผนปี ${y} (เลิกทำได้)">ลบแผนปี ${y}</button>`:''}
+  ${py?`<button class="b" data-act="paymode" aria-pressed="${payMode}" title="แสดงช่องติ๊ก ✓ จ่ายแล้วในแต่ละเดือน">${payMode?'✓ โหมดติ๊กจ่ายแล้ว: เปิด':'โหมดติ๊กจ่ายแล้ว'}</button>`:''}
   <span class="note">จุดสีเขียว = แบ่งเงินครบพอดี · จุดสีแดง = ยังมีเงินเหลือหรือเกินที่ต้องจัดสรร</span></div>
   <section class="card"><div class="bd" style="padding:0">${body}</div></section></div>`;
 }
@@ -789,6 +800,10 @@ function updatePlanTotals(){
   });
   $$('[data-dot]').forEach(d=>{const i=+d.dataset.dot;d.className='dot '+(Math.abs(t.remain[i])>0.005?'no':'ok');});
   const py=S.plan[y];
+  const paid=Array(12).fill(0);
+  secList(S,y).forEach(x=>{if(x.kind!=='income')((py&&py[x.key])||[]).forEach(r=>{if(r.paid)r.m.forEach((v,i)=>{if(r.paid[i]&&v)paid[i]+=+v;});});});
+  for(let i=0;i<12;i++){set(`[data-pd="paid:${i}"]`,paid[i]);set(`[data-pd="left:${i}"]`,(t.out[i]||0)-paid[i]);}
+  set('[data-pd="paid:y"]',sum(paid));set('[data-pd="left:y"]',sum(t.out)-sum(paid));
   secList(S,y).forEach(x=>((py&&py[x.key])||[]).forEach(r=>{const e=$(`[data-rt="${r.id}"]`);if(e)e.textContent=fmt(sum(r.m));}));
 }
 /* ---------- reorder: move rows / sections (drag with mouse or touch, or arrow keys on the handle) ---------- */
@@ -1140,6 +1155,11 @@ document.addEventListener('input',e=>{
   if(b==='pc'){
     const r=findRow(t.dataset.sec,t.dataset.id);if(!r)return;
     const v=t.value===''?null:parseFloat(t.value);r.m[+t.dataset.i]=isFinite(v)?v:null;markDirty('plan');updatePlanTotals();
+  }else if(b==='pd'){
+    const r=findRow(t.dataset.sec,t.dataset.id);if(!r)return;const i=+t.dataset.i;
+    if(!r.paid)r.paid=Array(12).fill(false);r.paid[i]=t.checked;
+    if(!r.paid.some(Boolean))delete r.paid;
+    const td=t.closest('td');if(td)td.classList.toggle('paid',t.checked);markDirty('plan');updatePlanTotals();
   }else if(b==='pn'){const r=findRow(t.dataset.sec,t.dataset.id);if(r){r.name=t.value;markDirty('plan');}}
   else if(b==='st'){const cs=((S.plan[+S.settings.planYear]||{}).secs||[]).find(x=>x.key===t.dataset.sec);if(cs){cs.title=t.value;markDirty('plan');}else{S.settings.secTitles[t.dataset.sec]=t.value;markDirty('settings');}}
   else if(b==='tx'){
@@ -1202,6 +1222,7 @@ document.addEventListener('click',e=>{
   else if(a==='addrow'){py()[d.sec].push({id:uid('p'),name:'',m:Array(12).fill(null)});markDirty('plan');render();
     const inp=$$(`[data-b="pn"][data-sec="${d.sec}"]`).pop();if(inp)inp.focus();}
   else if(a==='delrow'){removing('ลบแถวในแผนแล้ว',['plan'],()=>{const p=py();p[d.sec]=p[d.sec].filter(r=>r.id!==d.id);});}
+  else if(a==='paymode'){payMode=!payMode;render();}
   else if(a==='fillrow'){const r=findRow(d.sec,d.id);if(r){const f=r.m.find(v=>v!=null);if(f!=null){r.m=r.m.map(()=>f);markDirty('plan');render();}}}
   else if(a==='addtx'){
     const y=+S.settings.txYear,m=S.settings.txMonth==='all'?'all':parseInt(S.settings.txMonth,10);
