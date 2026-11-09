@@ -253,6 +253,7 @@ table.plan td.paid input[data-b="pc"]{text-decoration:line-through;color:var(--m
 table.plan td.paid{background:color-mix(in srgb,var(--inc) 8%,transparent)}
 table.plan tr.pdrow td,table.plan tr.pdrow th{font-weight:600;font-size:12px}
 
+.stktools{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}.stktools summary{cursor:pointer;font-weight:600}
 .up{color:var(--good)}.dn{color:var(--bad)}
 .stkhd{display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px}.stksum{padding:6px 0 10px;font-size:18px;font-variant-numeric:tabular-nums}.stksum b{font-size:22px}
 .stkit{display:grid;grid-template-columns:1fr auto auto;gap:14px;padding:12px 0;border-top:1px solid var(--line);align-items:center;font-variant-numeric:tabular-nums}.stkit b{font-size:17px;display:block}.stkit small{display:block;color:var(--muted);margin-top:2px}.stkit .m,.stkit .r{text-align:right}.stkit .r small{color:inherit;opacity:.85}
@@ -389,7 +390,7 @@ function planTotals(S,y){
   return t;
 }
 /* Investments: invested (buy - sell) over all years switched on, latest entered value by date */
-function investTable(S){
+function investTable(S,live){
   const on=y=>S.settings.invYears[y]!==false;
   const list=S.tx.filter(t=>t.type==='invest'&&(yOf(t)==null||on(yOf(t))));
   const names=[];
@@ -399,7 +400,8 @@ function investTable(S){
     const invested=sum(l.filter(t=>t.side!=='ขาย').map(t=>t.amount))-sum(l.filter(t=>t.side==='ขาย').map(t=>t.amount));
     const vals=S.pf.filter(p=>norm(p.name)===norm(n)&&p.value!=null).map((p,i)=>({p,i}))
       .sort((a,b)=>((a.p.date||'')<(b.p.date||'')?-1:(a.p.date||'')>(b.p.date||'')?1:a.i-b.i));
-    const cur=vals.length?vals[vals.length-1].p.value:null;
+    const lv=live&&live[norm(n)];
+    const cur=lv!=null?lv:(vals.length?vals[vals.length-1].p.value:null);
     return {name:n,invested,current:cur,gain:cur==null?null:cur-invested};
   });
   const withVal=rows.filter(r=>r.current!=null);
@@ -1029,12 +1031,49 @@ function stockCard(){
   <div class="scroller"><table class="tx" style="min-width:760px"><thead><tr><th title="ติดตามบนแดชบอร์ด">ดู</th><th>หุ้น</th><th>จำนวนหุ้น</th><th>ทุนเฉลี่ย/หุ้น ($)</th><th>ราคาล่าสุด</th><th>วันนี้</th><th>มูลค่า</th><th>กำไร/ขาดทุน</th><th>%</th><th></th></tr></thead><tbody>
   ${stocks().map(stkRow).join('')}
   <tr class="sum"><td colspan="6">รวม</td><td class="n" data-sk="tot:val">${usd(T.val)}</td><td class="n ${upDn(T.pl)}" data-sk="tot:pl">${T.pl==null?'-':(T.pl>=0?'+':'')+usd(T.pl)}</td><td class="n ${upDn(T.plp)}" data-sk="tot:plp">${pctS(T.plp)}</td><td></td></tr>
-  </tbody></table></div><div id="stklist" class="stklist"></div>${stocks().length?'':'<div class="empty">ยังไม่มีหุ้น กด “+ เพิ่มหุ้น” แล้วใส่สัญลักษณ์ เช่น AAPL, NVDA, VOO (เว้นจำนวนหุ้นว่างได้ถ้าแค่อยากติดตามราคา)</div>'}
+  </tbody></table></div><div id="stklist" class="stklist"></div>
+  <details class="stktools"><summary>นำเข้าจาก Dime (วางหลายตัวพร้อมกัน)</summary>
+   <div class="note" style="margin:6px 0">หนึ่งบรรทัดต่อหนึ่งหุ้น: <b>สัญลักษณ์ จำนวนหุ้น ทุนเฉลี่ย/หุ้น (USD)</b> เช่น <code>AAPL 10.5 150.25</code> (ดูจำนวนหุ้นและต้นทุนเฉลี่ยในหน้ารายละเอียดของแต่ละหุ้นในแอป) ถ้าหุ้นมีอยู่แล้วจะอัปเดตค่า ไม่เพิ่มซ้ำ</div>
+   <textarea id="stkpaste" rows="5" style="width:100%" placeholder="AAPL 10.5 150.25&#10;NVDA 3 120"></textarea>
+   <div style="margin:6px 0"><button class="b" data-act="stkcheck">ตรวจสอบก่อนนำเข้า</button></div><div id="stkprev"></div></details>
+  <details class="stktools"><summary>ซื้อเพิ่ม (เฉลี่ยทุนให้อัตโนมัติ)</summary>
+   <div class="ctl" style="margin:8px 0"><label>หุ้น <select id="buysym">${stocks().filter(s=>s.sym).map(s=>`<option>${h(s.sym)}</option>`).join('')}</select></label>
+   <label>จำนวนหุ้นที่ซื้อ <input type="number" step="any" id="buyu" style="width:100px"></label><label>ราคาที่ซื้อ/หุ้น ($) <input type="number" step="any" id="buyp" style="width:100px"></label>
+   <button class="b" data-act="stkbuy">บันทึกการซื้อ</button></div><div class="note" id="buymsg"></div></details>
+  <div class="ctl" style="margin-top:8px"><label>นำมูลค่าพอร์ตไปใส่ในตารางมูลค่าการลงทุน ชื่อพอร์ต <input type="text" id="stkport" value="${h(stkPortName())}" style="width:140px"></label><span class="note">ต้องตรงกับชื่อรายการลงทุนที่บันทึกไว้ (เช่น Dime) · ใช้อัตรา USD→บาทด้านบน</span></div>
+${stocks().length?'':'<div class="empty">ยังไม่มีหุ้น กด “+ เพิ่มหุ้น” แล้วใส่สัญลักษณ์ เช่น AAPL, NVDA, VOO (เว้นจำนวนหุ้นว่างได้ถ้าแค่อยากติดตามราคา)</div>'}
   <div class="note" style="margin-top:8px"><span data-sk="status">${h(stkStatus())}</span> · รีเฟรชอัตโนมัติทุก 1 นาทีขณะเปิดหน้านี้ · ราคาเป็น USD จาก Finnhub (ตอนตลาดปิดจะเป็นราคาปิดล่าสุด) ไม่ใช่คำแนะนำการลงทุน</div></div></section>`;
 }
 function stockStrip(){
   const w=stocks().filter(s=>s.watch&&s.sym);if(!w.length)return '';
   return `<section class="card"><div class="hd"><h2>หุ้นที่ติดตาม (เรียลไทม์)</h2><span class="note" data-sk="status">${h(stkStatus())}</span></div><div class="bd"><div id="stkdash"></div></div></section>`;
+}
+function stkPortName(){return (S.settings.stkPort||'Dime').trim();}
+function stkLive(){const rate=fxRate(),T=stkTotals();if(!rate||T.val==null)return null;const o={};o[norm(stkPortName())]=T.val*rate;return o;}
+let stkParsed=null;
+function stkParse(text){
+  const out=[],seen={};
+  text.split(/\r?\n/).forEach((ln,i)=>{
+    const t=ln.trim();if(!t)return;
+    const p=(/[\s;]/.test(t)?t.split(/[\s;]+/):t.split(',')).map(x=>x.trim()).filter(Boolean);
+    const sym=(p[0]||'').toUpperCase().replace(/^\$/,'');
+    const u=parseFloat((p[1]||'').replace(/,/g,'')),c=parseFloat((p[2]||'').replace(/,/g,''));
+    let err='';
+    if(!/^[A-Z][A-Z0-9.\-]{0,9}$/.test(sym))err='สัญลักษณ์ไม่ถูกต้อง';
+    else if(seen[sym])err='ซ้ำกับบรรทัด '+seen[sym];
+    else if(!(u>0))err='จำนวนหุ้นต้องมากกว่า 0';
+    else if(p[2]!=null&&p[2]!==''&&!(c>0))err='ราคาทุนไม่ถูกต้อง';
+    if(!err)seen[sym]=i+1;
+    const ex=stocks().find(s=>s.sym===sym);
+    out.push({line:i+1,raw:t,sym,units:u,cost:c>0?c:null,err,mode:err?'':(ex?'อัปเดต':'เพิ่มใหม่')});
+  });
+  return out;
+}
+function stkPreviewHtml(rows){
+  if(!rows.length)return '<div class="note">ยังไม่ได้ใส่ข้อมูล</div>';
+  const good=rows.filter(r=>!r.err).length;
+  return `<table class="tx"><thead><tr><th>บรรทัด</th><th>หุ้น</th><th>จำนวน</th><th>ทุน/หุ้น</th><th>สถานะ</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.line}</td><td>${h(r.sym||r.raw)}</td><td class="n">${r.err?'':r.units}</td><td class="n">${r.err||r.cost==null?'-':r.cost}</td><td class="${r.err?'dn':'up'}" style="text-align:left">${h(r.err||r.mode)}</td></tr>`).join('')}</tbody></table>
+  <div style="margin-top:8px"><button class="b pri" data-act="stkimport" ${good?'':'disabled'}>นำเข้า ${good} ตัวที่ถูกต้อง</button> <span class="note">${rows.length-good?'บรรทัดที่ผิดจะไม่ถูกนำเข้า · ':''}นำเข้าแล้วเลิกทำได้</span></div>`;
 }
 const SORTS={pl:['กำไรขาดทุน (%)',x=>x.c.plp],val:['มูลค่า',x=>x.c.val],dp:['เปลี่ยนแปลงวันนี้',x=>x.c.dp],sym:['ชื่อหุ้น',null]};
 function stkListHtml(onlyWatch){
@@ -1078,6 +1117,8 @@ async function refreshQuotes(){
   }
   try{const r=await fetch('https://open.er-api.com/v6/latest/USD');const j=await r.json();const t=j&&j.rates&&j.rates.THB;if(t>0)fxAuto=t;}catch(e){}
   qBusy=false;if(!qErr)qAt=Date.now();updateStocks();
+  if(tab==='inv'&&invCtx){const lv=stkLive(),nv=lv?lv[norm(stkPortName())]:null,ov=invCtx.liveV;
+    if(nv!=null&&(ov==null||Math.abs(nv-ov)>1)&&!(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)))render();}
 }
 function stocksAfter(){if(fhKey()&&stocks().length&&(!qAt||Date.now()-qAt>30000))refreshQuotes();else updateStocks();}
 setInterval(()=>{if(document.visibilityState==='visible'&&(tab==='inv'||tab==='dash'))refreshQuotes();},60000);
@@ -1094,17 +1135,29 @@ document.addEventListener('change',e=>{
   if(t.dataset.b==='stk'&&t.dataset.f==='sym'){refreshQuotes();}
   if(t.id==='fhkey'){try{localStorage.setItem('mp:fh',t.value.trim());}catch(x){}t.value='';qErr='';render();refreshQuotes();}
 });
-document.addEventListener('change',e=>{const t=e.target;if(t.id==='stksort'){S.settings.stkSort=t.value;markDirty('settings');updateStocks();}});
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='stkport'){S.settings.stkPort=t.value.trim();markDirty('settings');}});
+document.addEventListener('change',e=>{const t=e.target;if(t.id==='stkport'&&invCtx)render();if(t.id==='stksort'){S.settings.stkSort=t.value;markDirty('settings');updateStocks();}});
 document.addEventListener('input',e=>{const t=e.target;if(t.id==='fxm'){const v=parseFloat(t.value);S.settings.fxManual=isFinite(v)&&v>0?v:null;markDirty('settings');updateStocks();}});
 document.addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
   if(a==='addstk'){stocks().push({id:uid('k'),sym:'',units:null,cost:null,watch:true});markDirty('settings');render();}
   else if(a==='delstk'){removing('ลบหุ้นแล้ว',['settings'],()=>{S.settings.stocks=stocks().filter(x=>x.id!==b.dataset.id);});}
   else if(a==='stkrefresh'){qAt=0;refreshQuotes();}
+  else if(a==='stkcheck'){stkParsed=stkParse($('#stkpaste').value);$('#stkprev').innerHTML=stkPreviewHtml(stkParsed);}
+  else if(a==='stkimport'){const rows=(stkParsed||[]).filter(r=>!r.err);if(!rows.length)return;snapshot(['settings']);
+    rows.forEach(r=>{const ex=stocks().find(s=>s.sym===r.sym);if(ex){ex.units=r.units;if(r.cost!=null)ex.cost=r.cost;}else stocks().push({id:uid('k'),sym:r.sym,units:r.units,cost:r.cost,watch:true});});
+    stkParsed=null;markDirty('settings');render();refreshQuotes();toast('นำเข้า '+rows.length+' ตัวแล้ว',true);}
+  else if(a==='stkbuy'){const sym=$('#buysym').value,n=parseFloat($('#buyu').value),p=parseFloat($('#buyp').value),m=$('#buymsg');
+    const s=stocks().find(x=>x.sym===sym);
+    if(!s){m.textContent='ยังไม่มีหุ้นให้เลือก กรุณาเพิ่มหุ้นก่อน';return;}
+    if(!(n>0)||!(p>0)){m.textContent='ใส่จำนวนหุ้นและราคาที่ซื้อ (มากกว่า 0) ให้ครบ';return;}
+    snapshot(['settings']);const u0=parseFloat(s.units)>0?parseFloat(s.units):0,c0=parseFloat(s.cost)>0?parseFloat(s.cost):p;
+    s.units=+(u0+n).toFixed(8);s.cost=+(((u0*c0)+n*p)/(u0+n)).toFixed(4);markDirty('settings');render();toast('บันทึกการซื้อ '+sym+' แล้ว (ทุนเฉลี่ย $'+s.cost+')',true);}
 });
 let invCtx=null;
 function viewInv(){
-  const T=investTable(S);
+  const live=stkLive();
+  const T=investTable(S,live);
   const st=S.settings;
   const names=T.rows.map(r=>r.name);
   const port=st.dashPort&&names.some(n=>norm(n)===norm(st.dashPort))?st.dashPort:(names[0]||'');
@@ -1112,7 +1165,7 @@ function viewInv(){
   const rep=S.tx.filter(t=>t.type==='invest'&&(!from||(t.date||'')>=from)&&(!to||(t.date||'')<=to)&&(st.invPort==='ทั้งหมด'||norm(t.name)===norm(st.invPort)))
     .sort((a,b)=>(a.date||'')<(b.date||'')?-1:1);
   const buy=sum(rep.filter(t=>t.side!=='ขาย').map(t=>t.amount)),sell=sum(rep.filter(t=>t.side==='ขาย').map(t=>t.amount));
-  invCtx={T,port};
+  invCtx={T,port,liveV:live?live[norm(stkPortName())]:null};
   const hasCur=T.rows.some(r=>r.current!=null);
   return `<div class="stack"><div class="banner">Dashboard การลงทุน</div>
   ${stockCard()}
