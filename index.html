@@ -1032,11 +1032,11 @@ function stockCard(){
   ${stocks().map(stkRow).join('')}
   <tr class="sum"><td colspan="6">รวม</td><td class="n" data-sk="tot:val">${usd(T.val)}</td><td class="n ${upDn(T.pl)}" data-sk="tot:pl">${T.pl==null?'-':(T.pl>=0?'+':'')+usd(T.pl)}</td><td class="n ${upDn(T.plp)}" data-sk="tot:plp">${pctS(T.plp)}</td><td></td></tr>
   </tbody></table></div><div id="stklist" class="stklist"></div>
-  <details class="stktools"><summary>นำเข้าจาก Dime (วางหลายตัวพร้อมกัน)</summary>
+  <details class="stktools"><summary>นำเข้าเมื่อทราบ “จำนวนหุ้น” และ “ทุนเฉลี่ย” (ถ้าไม่ทราบ ใช้หัวข้อถัดไป)</summary>
    <div class="note" style="margin:6px 0">หนึ่งบรรทัดต่อหนึ่งหุ้น: <b>สัญลักษณ์ จำนวนหุ้น ทุนเฉลี่ย/หุ้น (USD)</b> เช่น <code>AAPL 10.5 150.25</code> (ดูจำนวนหุ้นและต้นทุนเฉลี่ยในหน้ารายละเอียดของแต่ละหุ้นในแอป) ถ้าหุ้นมีอยู่แล้วจะอัปเดตค่า ไม่เพิ่มซ้ำ</div>
    <textarea id="stkpaste" rows="5" style="width:100%" placeholder="AAPL 10.5 150.25&#10;NVDA 3 120"></textarea>
    <div style="margin:6px 0"><button class="b" data-act="stkcheck">ตรวจสอบก่อนนำเข้า</button></div><div id="stkprev"></div></details>
-  <details class="stktools"><summary>นำเข้าจากมูลค่าและกำไร (ไม่ทราบจำนวนหุ้น)</summary>
+  <details class="stktools"><summary>★ นำเข้าจากหน้ารายการสินทรัพย์ Dime (มูลค่า + กำไร) — แนะนำ</summary>
    <div class="note" style="margin:6px 0">หนึ่งบรรทัดต่อหนึ่งหุ้น: <b>สัญลักษณ์ มูลค่า(USD) กำไร/ขาดทุน(USD)</b> เช่น <code>MU 654.83 339.48</code> หรือ <code>VRT 57.25 -28.13</code> (ตามหน้ารายการสินทรัพย์ในแอป) ระบบจะดึงราคาตลาด แล้วคำนวณจำนวนหุ้น = มูลค่า ÷ ราคา และทุนเฉลี่ย = (มูลค่า − กำไร) ÷ จำนวนหุ้น ต้องใส่ API key ก่อน ค่าที่ได้เป็นค่าประมาณ แก้ไขในตารางได้</div>
    <textarea id="stkpastev" rows="5" style="width:100%" placeholder="MU 654.83 339.48&#10;VRT 57.25 -28.13"></textarea>
    <div style="margin:6px 0"><button class="b" data-act="stkcheckv">ดึงราคาและตรวจสอบ</button></div><div id="stkprev2"></div></details>
