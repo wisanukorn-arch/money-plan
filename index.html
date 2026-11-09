@@ -998,9 +998,9 @@ function stkCalc(s){
   return {price,dp:price!=null&&q.dp!=null?q.dp/100:null,val,cost,pl,plp:pl!=null?pl/cost:null,err:q&&q.err};
 }
 const upDn=n=>n==null?'':(n>=0?'up':'dn');
-function stkTotals(){
+function stkTotals(list){
   let val=0,cost=0,pl=0,any=false;
-  stocks().forEach(s=>{const c=stkCalc(s);if(c.val!=null){any=true;val+=c.val;}if(c.val!=null&&c.cost!=null){cost+=c.cost;pl+=c.pl;}});
+  (list||stocks()).forEach(s=>{const c=stkCalc(s);if(c.val!=null){any=true;val+=c.val;}if(c.val!=null&&c.cost!=null){cost+=c.cost;pl+=c.pl;}});
   return {val:any?val:null,pl:any&&cost>0?pl:null,plp:any&&cost>0?pl/cost:null};
 }
 function stkStatus(){
@@ -1034,12 +1034,13 @@ function stockCard(){
 }
 function stockStrip(){
   const w=stocks().filter(s=>s.watch&&s.sym);if(!w.length)return '';
-  return `<section class="card"><div class="hd"><h2>หุ้นที่ติดตาม</h2><span class="note" data-sk="status">${h(stkStatus())}</span></div><div class="bd"><div class="kpis">${w.map(s=>{const c=stkCalc(s);return `<div class="kpi"><h3>${h(s.sym)}</h3><div class="big" data-sk="${s.id}:price">${c.err?h(c.err):usd(c.price)}</div><small class="${upDn(c.dp)}" data-sk="${s.id}:dp">${pctS(c.dp)}</small>${c.pl!=null?`<small>กำไร/ขาดทุน <b class="${upDn(c.pl)}" data-sk="${s.id}:pl">${(c.pl>=0?'+':'')+usd(c.pl)}</b></small>`:''}</div>`;}).join('')}</div></div></section>`;
+  return `<section class="card"><div class="hd"><h2>หุ้นที่ติดตาม (เรียลไทม์)</h2><span class="note" data-sk="status">${h(stkStatus())}</span></div><div class="bd"><div id="stkdash"></div></div></section>`;
 }
 const SORTS={pl:['กำไรขาดทุน (%)',x=>x.c.plp],val:['มูลค่า',x=>x.c.val],dp:['เปลี่ยนแปลงวันนี้',x=>x.c.dp],sym:['ชื่อหุ้น',null]};
-function stkListHtml(){
-  const T=stkTotals(),rate=fxRate(),key=SORTS[S.settings.stkSort]?S.settings.stkSort:'pl';
-  const items=stocks().filter(s=>s.sym).map(s=>({s,c:stkCalc(s)}));
+function stkListHtml(onlyWatch){
+  const rate=fxRate(),key=SORTS[S.settings.stkSort]?S.settings.stkSort:'pl';
+  const lst=stocks().filter(s=>s.sym&&(!onlyWatch||s.watch)),T=stkTotals(lst);
+  const items=lst.map(s=>({s,c:stkCalc(s)}));
   if(key==='sym')items.sort((x,y)=>x.s.sym<y.s.sym?-1:1);
   else items.sort((x,y)=>{const a=SORTS[key][1](x),b=SORTS[key][1](y);return (b==null?-Infinity:b)-(a==null?-Infinity:a);});
   const sumline=T.val!=null?`<div class="stksum"><b>${usd(T.val)}</b>${rate?` <span class="note">≈ ${thb(T.val*rate)}</span>`:''} <span class="${upDn(T.pl)}">${T.pl==null?'':(T.pl>=0?'+':'')+usd(T.pl)+' ('+pctS(T.plp)+')'}</span></div>`:'';
@@ -1052,6 +1053,7 @@ function stkListHtml(){
 }
 function updateStocks(){
   const lb=$('#stklist');if(lb){const sel=lb.querySelector('#stksort');if(!(sel&&document.activeElement===sel))lb.innerHTML=stkListHtml();}
+  const ld=$('#stkdash');if(ld){const sel=ld.querySelector('#stksort');if(!(sel&&document.activeElement===sel))ld.innerHTML=stkListHtml(true);}
   const set=(k,t,cls)=>$$(`[data-sk="${k}"]`).forEach(e=>{e.textContent=t;if(cls!==undefined){e.classList.remove('up','dn');if(cls)e.classList.add(cls);}});
   stocks().forEach(s=>{const c=stkCalc(s),id=s.id;
     set(id+':price',c.err?c.err:usd(c.price));set(id+':dp',pctS(c.dp),upDn(c.dp));set(id+':val',usd(c.val));
