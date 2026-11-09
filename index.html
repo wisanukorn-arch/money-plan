@@ -291,6 +291,28 @@ h2.sect{font-family:var(--f-head);font-size:16px;font-weight:700;margin-top:8px;
 .mrow.paid .mnm,.mrow.paid input[data-b="pc"]{text-decoration:line-through;opacity:.6}.mrow.paid{background:color-mix(in srgb,var(--inc) 8%,transparent)}
 .madd{padding:8px 14px;border-top:1px solid var(--line)}
 @media (min-width:760px){.mview{max-width:760px}.msum{grid-template-columns:repeat(4,1fr)}}
+
+/* plan grid: fit the page width, no horizontal scroll on normal screens */
+table.plan{min-width:0;width:100%;table-layout:fixed;font-size:12px}
+table.plan th:first-child,table.plan td:first-child{width:clamp(150px,16vw,230px);min-width:0;max-width:none}
+table.plan th:last-child,table.plan td:last-child{width:clamp(70px,7vw,96px)}
+table.plan th,table.plan td{padding-inline:3px;overflow:hidden;text-overflow:ellipsis}
+table.plan td input[type=number]{width:100%;padding:3px 3px;font-size:12px;min-width:0}
+table.plan td .pcw{display:flex;align-items:center;gap:1px}table.plan td .pcw input[data-b="pc"]{flex:1}
+table.plan td.nm-in{overflow:visible}table.plan td.nm-in button.ico{width:22px;height:22px;flex:none}
+table.plan tr.stat th{white-space:normal}
+table.plan td.n{font-size:12px}
+
+table.plan td input[type=number]{-moz-appearance:textfield;appearance:textfield}
+table.plan td input[type=number]::-webkit-inner-spin-button,table.plan td input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+@media (max-width:1180px){
+ table.plan{font-size:11px}table.plan td input[type=number]{font-size:11px;padding:3px 1px}
+ table.plan td .pcw{gap:0}table.plan .pdk{width:14px;height:14px}
+ table.plan td.n,table.plan th{font-size:11px}
+}
+
+table.plan .pdk{margin:0}
+@media (max-width:1180px){table.plan th,table.plan td{padding-inline:1px}table.plan th:first-child,table.plan td:first-child{width:140px}table.plan th:last-child,table.plan td:last-child{width:70px}}
 </style>
 <div class="bar"><div class="row"><div class="brand"><i></i>The money plan</div><nav class="tabs" role="tablist" aria-label="เมนู"></nav><div class="save" id="save" data-s="saved" aria-live="polite"><span class="d"></span><span class="t">กำลังโหลด…</span></div></div></div>
 <div class="wrap" id="bkbar"></div>
@@ -475,7 +497,7 @@ const DEFAULT_SETTINGS={year:2026,month:'9',targetRate:0.2,goals:[],emergencyTar
 let S={settings:{...DEFAULT_SETTINGS},plan:{},tx:[],pf:[]};
 let db=null,tab='dash',loaded=false,hasData=false;
 let payMode=false;
-let planView=(()=>{try{const v=localStorage.getItem('mp:pv');if(v==='grid'||v==='month')return v;}catch(e){}return (typeof window!=='undefined'&&window.innerWidth<760)?'month':'grid';})();
+let planView=(()=>{try{const v=localStorage.getItem('mp:pv');if(v==='grid'||v==='month')return v;}catch(e){}return (typeof window!=='undefined'&&window.innerWidth<900)?'month':'grid';})();
 let planMonth=new Date().getMonth();
 let recQ='',qa=null,qaLastType='expense';
 let undoSnap=null,toastTimer=null;
