@@ -1036,6 +1036,10 @@ function stockCard(){
    <div class="note" style="margin:6px 0">หนึ่งบรรทัดต่อหนึ่งหุ้น: <b>สัญลักษณ์ จำนวนหุ้น ทุนเฉลี่ย/หุ้น (USD)</b> เช่น <code>AAPL 10.5 150.25</code> (ดูจำนวนหุ้นและต้นทุนเฉลี่ยในหน้ารายละเอียดของแต่ละหุ้นในแอป) ถ้าหุ้นมีอยู่แล้วจะอัปเดตค่า ไม่เพิ่มซ้ำ</div>
    <textarea id="stkpaste" rows="5" style="width:100%" placeholder="AAPL 10.5 150.25&#10;NVDA 3 120"></textarea>
    <div style="margin:6px 0"><button class="b" data-act="stkcheck">ตรวจสอบก่อนนำเข้า</button></div><div id="stkprev"></div></details>
+  <details class="stktools"><summary>นำเข้าจากมูลค่าและกำไร (ไม่ทราบจำนวนหุ้น)</summary>
+   <div class="note" style="margin:6px 0">หนึ่งบรรทัดต่อหนึ่งหุ้น: <b>สัญลักษณ์ มูลค่า(USD) กำไร/ขาดทุน(USD)</b> เช่น <code>MU 654.83 339.48</code> หรือ <code>VRT 57.25 -28.13</code> (ตามหน้ารายการสินทรัพย์ในแอป) ระบบจะดึงราคาตลาด แล้วคำนวณจำนวนหุ้น = มูลค่า ÷ ราคา และทุนเฉลี่ย = (มูลค่า − กำไร) ÷ จำนวนหุ้น ต้องใส่ API key ก่อน ค่าที่ได้เป็นค่าประมาณ แก้ไขในตารางได้</div>
+   <textarea id="stkpastev" rows="5" style="width:100%" placeholder="MU 654.83 339.48&#10;VRT 57.25 -28.13"></textarea>
+   <div style="margin:6px 0"><button class="b" data-act="stkcheckv">ดึงราคาและตรวจสอบ</button></div><div id="stkprev2"></div></details>
   <details class="stktools"><summary>ซื้อเพิ่ม (เฉลี่ยทุนให้อัตโนมัติ)</summary>
    <div class="ctl" style="margin:8px 0"><label>หุ้น <select id="buysym">${stocks().filter(s=>s.sym).map(s=>`<option>${h(s.sym)}</option>`).join('')}</select></label>
    <label>จำนวนหุ้นที่ซื้อ <input type="number" step="any" id="buyu" style="width:100px"></label><label>ราคาที่ซื้อ/หุ้น ($) <input type="number" step="any" id="buyp" style="width:100px"></label>
@@ -1050,6 +1054,24 @@ function stockStrip(){
 }
 function stkPortName(){return (S.settings.stkPort||'Dime').trim();}
 function stkLive(){const rate=fxRate(),T=stkTotals();if(!rate||T.val==null)return null;const o={};o[norm(stkPortName())]=T.val*rate;return o;}
+function stkParseV(text){
+  const out=[],seen={};
+  text.split(/\r?\n/).forEach((ln,i)=>{
+    const t=ln.trim();if(!t)return;
+    const p=t.split(/[\s;]+/).filter(Boolean);
+    const sym=(p[0]||'').toUpperCase().replace(/^\$/,'');
+    const num=x=>parseFloat(String(x||'').replace(/[,+()$]|usd/gi,''));
+    const v=num(p[1]),pl=num(p[2]);let err='';
+    if(!/^[A-Z][A-Z0-9.\-]{0,9}$/.test(sym))err='สัญลักษณ์ไม่ถูกต้อง';
+    else if(seen[sym])err='ซ้ำกับบรรทัด '+seen[sym];
+    else if(!(v>0))err='มูลค่าต้องมากกว่า 0';
+    else if(!isFinite(pl))err='ไม่มีตัวเลขกำไร/ขาดทุน';
+    else if(!(v-pl>0))err='ต้นทุน (มูลค่า − กำไร) ต้องมากกว่า 0';
+    if(!err)seen[sym]=i+1;
+    out.push({line:i+1,raw:t,sym,value:v,pl,err,units:null,cost:null,mode:''});
+  });
+  return out;
+}
 let stkParsed=null;
 function stkParse(text){
   const out=[],seen={};
@@ -1144,6 +1166,19 @@ document.addEventListener('click',e=>{
   else if(a==='delstk'){removing('ลบหุ้นแล้ว',['settings'],()=>{S.settings.stocks=stocks().filter(x=>x.id!==b.dataset.id);});}
   else if(a==='stkrefresh'){qAt=0;refreshQuotes();}
   else if(a==='stkcheck'){stkParsed=stkParse($('#stkpaste').value);$('#stkprev').innerHTML=stkPreviewHtml(stkParsed);}
+  else if(a==='stkcheckv'){const box=$('#stkprev2'),key=fhKey();
+    const rows=stkParseV($('#stkpastev').value);stkParsed=null;
+    if(!key){box.innerHTML='<div class="dn">ต้องใส่ Finnhub API key ก่อน</div>';return;}
+    box.innerHTML='<div class="note">กำลังดึงราคา…</div>';
+    (async()=>{let stop='';
+      for(const r of rows){if(r.err||stop)continue;
+        try{const j=await fetchQuote(r.sym,key);
+          if(!(j&&j.c>0)){r.err='ไม่พบราคาของสัญลักษณ์นี้';continue;}
+          r.units=+(r.value/j.c).toFixed(6);r.cost=+((r.value-r.pl)/r.units).toFixed(4);r.price=j.c;
+          r.mode=(stocks().find(s=>s.sym===r.sym)?'อัปเดต':'เพิ่มใหม่')+' (ราคา $'+j.c+')';
+        }catch(e){stop=e.message==='key'?'API key ไม่ถูกต้อง':e.message==='limit'?'เกินโควตาฟรี รอสักครู่แล้วลองใหม่':'ดึงราคาไม่สำเร็จ';r.err=stop;}}
+      rows.forEach(r=>{if(stop&&!r.err)r.err=stop;});
+      stkParsed=rows;box.innerHTML=stkPreviewHtml(rows)+'<div class="note" style="margin-top:6px">จำนวนหุ้นคำนวณจากราคาตลาดขณะนี้ อาจต่างจากในแอปเล็กน้อย</div>';})();}
   else if(a==='stkimport'){const rows=(stkParsed||[]).filter(r=>!r.err);if(!rows.length)return;snapshot(['settings']);
     rows.forEach(r=>{const ex=stocks().find(s=>s.sym===r.sym);if(ex){ex.units=r.units;if(r.cost!=null)ex.cost=r.cost;}else stocks().push({id:uid('k'),sym:r.sym,units:r.units,cost:r.cost,watch:true});});
     stkParsed=null;markDirty('settings');render();refreshQuotes();toast('นำเข้า '+rows.length+' ตัวแล้ว',true);}
