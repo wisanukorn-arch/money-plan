@@ -272,6 +272,25 @@ h2.sect{font-family:var(--f-head);font-size:16px;font-weight:700;margin-top:8px;
 .stkit .l{display:flex;align-items:center;gap:12px}.av{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;font-size:13px;background:hsl(var(--h) 60% 90%);color:hsl(var(--h) 45% 28%)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .av{background:hsl(var(--h) 30% 24%);color:hsl(var(--h) 70% 86%)}}
 :root[data-theme="dark"] .av{background:hsl(var(--h) 30% 24%);color:hsl(var(--h) 70% 86%)}
+
+.mview{display:flex;flex-direction:column;gap:12px}
+.mnav{display:flex;gap:8px;align-items:center}.mnav select{flex:1;font-size:16px;font-weight:600;min-height:44px;text-align:center}.mnav .b{min-width:48px;min-height:44px;font-size:20px}
+.msum{display:grid;grid-template-columns:1fr 1fr;gap:8px}.msum>div{background:var(--card);color:var(--card-ink);border-radius:12px;padding:10px 12px}
+.msum small{display:block;font-size:12px;opacity:.8}.msum b{font-size:20px;font-variant-numeric:tabular-nums;font-family:var(--f-head)}
+.msum b.up{color:var(--good)}.msum b.dn{color:var(--bad)}
+.mbarw{height:8px;border-radius:99px;background:var(--grid);overflow:hidden}.mbar{height:100%;background:var(--good);width:0;transition:width .25s}
+.msec{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.mhd{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;color:#fff;font-weight:700;background:var(--brand)}
+.msec.s-income .mhd{background:var(--inc)}.msec.s-need .mhd{background:var(--exp)}.msec.s-save .mhd{background:var(--inv)}
+.mhd b{font-variant-numeric:tabular-nums}
+.mrow{display:flex;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid var(--line)}
+.mnm{flex:1;min-width:0;overflow-wrap:anywhere}
+.mrow input[data-b="pc"]{width:112px;min-height:42px;font-size:16px}
+.mck{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);min-width:74px;cursor:pointer}.mck input{width:22px;height:22px;accent-color:var(--inc)}
+.mck-sp{min-width:74px}
+.mrow.paid .mnm,.mrow.paid input[data-b="pc"]{text-decoration:line-through;opacity:.6}.mrow.paid{background:color-mix(in srgb,var(--inc) 8%,transparent)}
+.madd{padding:8px 14px;border-top:1px solid var(--line)}
+@media (min-width:760px){.mview{max-width:760px}.msum{grid-template-columns:repeat(4,1fr)}}
 </style>
 <div class="bar"><div class="row"><div class="brand"><i></i>The money plan</div><nav class="tabs" role="tablist" aria-label="เมนู"></nav><div class="save" id="save" data-s="saved" aria-live="polite"><span class="d"></span><span class="t">กำลังโหลด…</span></div></div></div>
 <div class="wrap" id="bkbar"></div>
@@ -456,6 +475,8 @@ const DEFAULT_SETTINGS={year:2026,month:'9',targetRate:0.2,goals:[],emergencyTar
 let S={settings:{...DEFAULT_SETTINGS},plan:{},tx:[],pf:[]};
 let db=null,tab='dash',loaded=false,hasData=false;
 let payMode=false;
+let planView=(()=>{try{const v=localStorage.getItem('mp:pv');if(v==='grid'||v==='month')return v;}catch(e){}return (typeof window!=='undefined'&&window.innerWidth<760)?'month':'grid';})();
+let planMonth=new Date().getMonth();
 let recQ='',qa=null,qaLastType='expense';
 let undoSnap=null,toastTimer=null;
 const charts={};
@@ -773,6 +794,35 @@ function ensureYear(y){
   if(!S.plan[y]){S.plan[y]={income:[],need:[],extra:[],save:[],secs:[]};}
   return S.plan[y];
 }
+function monthBody(py,y){
+  const i=planMonth,t=planTotals(S,y);
+  const rows=x=>(py[x.key]||[]).map(r=>{const v=r.m[i],pd=!!(r.paid&&r.paid[i]),can=x.kind!=='income';
+    return `<div class="mrow${pd?' paid':''}"><span class="mnm">${h(r.name||'(ยังไม่ตั้งชื่อ)')}</span>
+    <input type="number" step="any" inputmode="decimal" value="${v==null?'':+(+v).toFixed(2)}" data-b="pc" data-sec="${x.key}" data-id="${r.id}" data-i="${i}" aria-label="${h(r.name)} ${MONTHS[i]}">
+    ${can?`<label class="mck" title="จ่ายแล้ว"><input type="checkbox" data-b="pd" data-sec="${x.key}" data-id="${r.id}" data-i="${i}" ${pd?'checked':''} aria-label="จ่ายแล้ว ${h(r.name)}"><span>จ่ายแล้ว</span></label>`:'<span class="mck-sp"></span>'}</div>`;}).join('');
+  const cls={income:'s-income',expense:'s-need',invest:'s-save'};
+  return `<div class="mview">
+   <div class="mnav"><button class="b" data-act="pmprev" aria-label="เดือนก่อนหน้า">‹</button>
+    <select id="pmsel" aria-label="เลือกเดือน">${MONTHS.map((m,k)=>`<option value="${k}" ${k===i?'selected':''}>${MONTHS_FULL[k]} ${y}</option>`).join('')}</select>
+    <button class="b" data-act="pmnext" aria-label="เดือนถัดไป">›</button></div>
+   <div class="msum"><div><small>รายรับ</small><b data-ms="income">0</b></div><div><small>ต้องจ่าย (รายจ่าย+ออม)</small><b data-ms="out">0</b></div>
+    <div><small>จ่ายแล้ว</small><b class="up" data-ms="paid">0</b></div><div><small>ค้างจ่าย</small><b class="dn" data-ms="left">0</b></div></div>
+   <div class="mbarw" aria-hidden="true"><div class="mbar" data-ms="bar"></div></div>
+   <div class="note" data-ms="remain" style="margin:4px 2px 12px"></div>
+   ${secList(S,y).map(x=>`<section class="msec ${cls[x.kind]||''}"><div class="mhd"><span>${h(x.title)}</span><b data-ms="sec:${x.key}">0</b></div>${rows(x)||'<div class="note" style="padding:10px 14px">ยังไม่มีรายการ</div>'}
+     <div class="madd"><button class="b" data-act="addrow" data-sec="${x.key}">+ เพิ่มรายการ</button></div></section>`).join('')}
+   <div class="note">เพิ่มหัวข้อหลัก ลากย้าย หรือดูทั้งปี ให้สลับไปที่ “ตาราง 12 เดือน”</div></div>`;
+}
+function updateMonthSummary(){
+  if(!$('.mview'))return;
+  const y=+S.settings.planYear,py=S.plan[y],t=planTotals(S,y),i=planMonth,set=(k,v)=>{const e=$(`[data-ms="${k}"]`);if(e)e.textContent=v;};
+  let paid=0;secList(S,y).forEach(x=>{if(x.kind!=='income')((py&&py[x.key])||[]).forEach(r=>{if(r.paid&&r.paid[i]&&r.m[i])paid+=+r.m[i];});});
+  const out=t.out[i]||0;
+  set('income',fmt(t.income[i]||0));set('out',fmt(out));set('paid',fmt(paid));set('left',fmt(out-paid));
+  set('remain',(Math.abs(t.remain[i])>0.005?'รายรับเหลือให้จัดสรร ':'แบ่งเงินครบพอดี ')+(Math.abs(t.remain[i])>0.005?fmt(t.remain[i]):'✓'));
+  const b=$('[data-ms="bar"]');if(b)b.style.width=(out>0?Math.min(100,paid/out*100):0)+'%';
+  secList(S,y).forEach(x=>set('sec:'+x.key,fmt((t.sec[x.key]||[])[i]||0)));
+}
 function viewPlan(){
   const y=+S.settings.planYear;
   const py=S.plan[y];
@@ -805,14 +855,17 @@ function viewPlan(){
         <button class="b pri" data-act="addsec">+ เพิ่มหัวข้อ</button>
         <span class="note">ประเภทกำหนดว่ารายการในหัวข้อนี้ไปอยู่กลุ่มไหนในแดชบอร์ด และรวมเข้าช่อง “รวมจำนวนทั้งหมด” อย่างไร</span></div>`;
   }
+  if(py&&planView==='month')body=monthBody(py,y);
   return `<div class="stack"><div class="banner">การวางแผนรายรับ รายจ่าย</div>
   <div class="ctl"><div class="yrs" role="group" aria-label="เลือกปี">${years.map(v=>`<button data-act="planyear" data-y="${v}" aria-pressed="${v===y}">${v}</button>`).join('')}<button class="b" data-act="planaddyear" data-y="${next}" title="เพิ่มแผนปี ${next}">+ ปี ${next}</button></div>
   ${py&&S.plan[y-1]?`<button class="b" data-act="plancopy" data-from="${y-1}" title="แทนที่แผนปี ${y} ด้วยแผนปี ${y-1} (เลิกทำได้)">คัดลอกแผนจากปี ${y-1}</button>`:''}${py?`<button class="b" data-act="plandelyear" title="ลบแผนปี ${y} (เลิกทำได้)">ลบแผนปี ${y}</button>`:''}
-  ${py?`<button class="b" data-act="paymode" aria-pressed="${payMode}" title="แสดงช่องติ๊ก ✓ จ่ายแล้วในแต่ละเดือน">${payMode?'✓ โหมดติ๊กจ่ายแล้ว: เปิด':'โหมดติ๊กจ่ายแล้ว'}</button>`:''}
-  <span class="note">จุดสีเขียว = แบ่งเงินครบพอดี · จุดสีแดง = ยังมีเงินเหลือหรือเกินที่ต้องจัดสรร</span></div>
-  <section class="card"><div class="bd" style="padding:0">${body}</div></section></div>`;
+  ${py?`<div class="yrs" role="group" aria-label="มุมมอง"><button data-act="pview" data-v="month" aria-pressed="${planView==='month'}">เดือนนี้</button><button data-act="pview" data-v="grid" aria-pressed="${planView==='grid'}">ตาราง 12 เดือน</button></div>`:''}
+  ${py&&planView==='grid'?`<button class="b" data-act="paymode" aria-pressed="${payMode}" title="แสดงช่องติ๊ก ✓ จ่ายแล้วในแต่ละเดือน">${payMode?'✓ โหมดติ๊กจ่ายแล้ว: เปิด':'โหมดติ๊กจ่ายแล้ว'}</button>`:''}
+  ${planView==='grid'?'<span class="note">จุดสีเขียว = แบ่งเงินครบพอดี · จุดสีแดง = ยังมีเงินเหลือหรือเกินที่ต้องจัดสรร</span>':''}</div>
+  ${py&&planView==='month'?body:`<section class="card"><div class="bd" style="padding:0">${body}</div></section>`}</div>`;
 }
 function updatePlanTotals(){
+  updateMonthSummary();
   const y=+S.settings.planYear,t=planTotals(S,y);
   const set=(sel,v)=>{const e=$(sel);if(e)e.textContent=fmt(v);};
   [...secList(S,y).map(x=>x.key),'remain','out'].forEach(k=>{
@@ -1206,7 +1259,7 @@ document.addEventListener('change',e=>{
   if(t.id==='fhkey'){try{localStorage.setItem('mp:fh',t.value.trim());}catch(x){}t.value='';qErr='';render();refreshQuotes();}
 });
 document.addEventListener('input',e=>{const t=e.target;if(t.id==='stkport'){S.settings.stkPort=t.value.trim();markDirty('settings');}});
-document.addEventListener('change',e=>{const t=e.target;if(t.id==='stkport'&&invCtx)render();if(t.id==='stksort'){S.settings.stkSort=t.value;markDirty('settings');updateStocks();}});
+document.addEventListener('change',e=>{const t=e.target;if(t.id==='pmsel'){planMonth=+t.value;render();}if(t.id==='stkport'&&invCtx)render();if(t.id==='stksort'){S.settings.stkSort=t.value;markDirty('settings');updateStocks();}});
 document.addEventListener('input',e=>{const t=e.target;if(t.id==='fxm'){const v=parseFloat(t.value);S.settings.fxManual=isFinite(v)&&v>0?v:null;markDirty('settings');updateStocks();}});
 document.addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
@@ -1428,7 +1481,7 @@ document.addEventListener('input',e=>{
     const r=findRow(t.dataset.sec,t.dataset.id);if(!r)return;const i=+t.dataset.i;
     if(!r.paid)r.paid=Array(12).fill(false);r.paid[i]=t.checked;
     if(!r.paid.some(Boolean))delete r.paid;
-    const td=t.closest('td');if(td)td.classList.toggle('paid',t.checked);markDirty('plan');updatePlanTotals();
+    const td=t.closest('td,.mrow');if(td)td.classList.toggle('paid',t.checked);markDirty('plan');updatePlanTotals();
   }else if(b==='pn'){const r=findRow(t.dataset.sec,t.dataset.id);if(r){r.name=t.value;markDirty('plan');}}
   else if(b==='st'){const cs=((S.plan[+S.settings.planYear]||{}).secs||[]).find(x=>x.key===t.dataset.sec);if(cs){cs.title=t.value;markDirty('plan');}else{S.settings.secTitles[t.dataset.sec]=t.value;markDirty('settings');}}
   else if(b==='tx'){
@@ -1492,6 +1545,9 @@ document.addEventListener('click',e=>{
     const inp=$$(`[data-b="pn"][data-sec="${d.sec}"]`).pop();if(inp)inp.focus();}
   else if(a==='delrow'){removing('ลบแถวในแผนแล้ว',['plan'],()=>{const p=py();p[d.sec]=p[d.sec].filter(r=>r.id!==d.id);});}
   else if(a==='paymode'){payMode=!payMode;render();}
+  else if(a==='pview'){planView=d.v;try{localStorage.setItem('mp:pv',planView);}catch(e){}render();}
+  else if(a==='pmprev'){planMonth=(planMonth+11)%12;render();}
+  else if(a==='pmnext'){planMonth=(planMonth+1)%12;render();}
   else if(a==='fillrow'){const r=findRow(d.sec,d.id);if(r){const f=r.m.find(v=>v!=null);if(f!=null){r.m=r.m.map(()=>f);markDirty('plan');render();}}}
   else if(a==='addtx'){
     const y=+S.settings.txYear,m=S.settings.txMonth==='all'?'all':parseInt(S.settings.txMonth,10);
