@@ -258,6 +258,20 @@ table.plan tr.pdrow td,table.plan tr.pdrow th{font-weight:600;font-size:12px}
 .stkhd{display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px}.stksum{padding:6px 0 10px;font-size:18px;font-variant-numeric:tabular-nums}.stksum b{font-size:22px}
 .stkit{display:grid;grid-template-columns:1fr auto auto;gap:14px;padding:12px 0;border-top:1px solid var(--line);align-items:center;font-variant-numeric:tabular-nums}.stkit b{font-size:17px;display:block}.stkit small{display:block;color:var(--muted);margin-top:2px}.stkit .m,.stkit .r{text-align:right}.stkit .r small{color:inherit;opacity:.85}
 #stkcard input[type=checkbox]{width:18px;height:18px;accent-color:var(--brand)}
+
+.hero{background:linear-gradient(135deg,#2f66c9,#1c3a78);color:#fff;border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
+.hero .note{color:rgba(255,255,255,.82)}.hero-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hero-val{font-family:var(--f-head);font-size:clamp(30px,7vw,44px);font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1;margin:6px 0 2px}
+.hero-sub{opacity:.92}.hero-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px 16px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.25)}
+.hero-row small{display:block;opacity:.8}.hero-row b{font-size:17px;font-variant-numeric:tabular-nums}.hero .up{color:#b6f5b0}.hero .dn{color:#ffc4c4}
+.hero button.b{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.4)}.hero button.b:hover{background:rgba(255,255,255,.26)}
+.hero-st{margin-top:10px;font-size:12.5px;opacity:.8}
+.manage>summary{cursor:pointer;font-weight:600;padding:12px 16px;list-style:none}.manage>summary::-webkit-details-marker{display:none}.manage[open]>summary{border-bottom:1px solid var(--line)}
+.mg-sec{margin-bottom:18px}.mg-sec h3{font-size:14px;font-weight:700;margin-bottom:8px;color:var(--ink-2)}
+h2.sect{font-family:var(--f-head);font-size:16px;font-weight:700;margin-top:8px;color:var(--ink-2)}
+.stkit .l{display:flex;align-items:center;gap:12px}.av{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;font-size:13px;background:hsl(var(--h) 60% 90%);color:hsl(var(--h) 45% 28%)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .av{background:hsl(var(--h) 30% 24%);color:hsl(var(--h) 70% 86%)}}
+:root[data-theme="dark"] .av{background:hsl(var(--h) 30% 24%);color:hsl(var(--h) 70% 86%)}
 </style>
 <div class="bar"><div class="row"><div class="brand"><i></i>The money plan</div><nav class="tabs" role="tablist" aria-label="เมนู"></nav><div class="save" id="save" data-s="saved" aria-live="polite"><span class="d"></span><span class="t">กำลังโหลด…</span></div></div></div>
 <div class="wrap" id="bkbar"></div>
@@ -1022,35 +1036,67 @@ function stkRow(s){
   <td class="n" data-sk="${id}:val">${usd(c.val)}</td><td class="n ${upDn(c.pl)}" data-sk="${id}:pl">${c.pl==null?'-':(c.pl>=0?'+':'')+usd(c.pl)}</td><td class="n ${upDn(c.plp)}" data-sk="${id}:plp">${pctS(c.plp)}</td>
   <td><button class="ico" data-act="delstk" data-id="${id}" title="ลบ">×</button></td></tr>`;
 }
-function stockCard(){
-  const T=stkTotals(),has=!!fhKey();
-  return `<section class="card" id="stkcard"><div class="hd"><h2>พอร์ตหุ้นสหรัฐ (ราคาล่าสุด)</h2><div class="ctl"><button class="b" data-act="stkrefresh">↻ รีเฟรชราคา</button><button class="b pri" data-act="addstk">+ เพิ่มหุ้น</button></div></div>
-  <div class="bd"><div class="ctl" style="margin-bottom:10px"><label>Finnhub API key <input type="password" id="fhkey" autocomplete="off" placeholder="${has?'บันทึกแล้ว (ใส่ใหม่เพื่อเปลี่ยน)':'วาง API key ที่นี่'}" style="min-width:240px"></label>
-   <label>อัตรา USD→บาท <input type="number" step="any" id="fxm" value="${S.settings.fxManual==null?'':S.settings.fxManual}" placeholder="อัตโนมัติ" style="width:100px"></label>
-   <span class="note">ขอ key ฟรีที่ <a href="https://finnhub.io/register" target="_blank" rel="noopener">finnhub.io</a> · เก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ไม่ถูกบันทึกขึ้น GitHub ต้องใส่แยกในแต่ละเครื่อง</span></div>
-  <div class="scroller"><table class="tx" style="min-width:760px"><thead><tr><th title="ติดตามบนแดชบอร์ด">ดู</th><th>หุ้น</th><th>จำนวนหุ้น</th><th>ทุนเฉลี่ย/หุ้น ($)</th><th>ราคาล่าสุด</th><th>วันนี้</th><th>มูลค่า</th><th>กำไร/ขาดทุน</th><th>%</th><th></th></tr></thead><tbody>
-  ${stocks().map(stkRow).join('')}
-  <tr class="sum"><td colspan="6">รวม</td><td class="n" data-sk="tot:val">${usd(T.val)}</td><td class="n ${upDn(T.pl)}" data-sk="tot:pl">${T.pl==null?'-':(T.pl>=0?'+':'')+usd(T.pl)}</td><td class="n ${upDn(T.plp)}" data-sk="tot:plp">${pctS(T.plp)}</td><td></td></tr>
-  </tbody></table></div><div id="stklist" class="stklist"></div>
-  <details class="stktools"><summary>นำเข้าเมื่อทราบ “จำนวนหุ้น” และ “ทุนเฉลี่ย” (ถ้าไม่ทราบ ใช้หัวข้อถัดไป)</summary>
-   <div class="note" style="margin:6px 0">หนึ่งบรรทัดต่อหนึ่งหุ้น: <b>สัญลักษณ์ จำนวนหุ้น ทุนเฉลี่ย/หุ้น (USD)</b> เช่น <code>AAPL 10.5 150.25</code> (ดูจำนวนหุ้นและต้นทุนเฉลี่ยในหน้ารายละเอียดของแต่ละหุ้นในแอป) ถ้าหุ้นมีอยู่แล้วจะอัปเดตค่า ไม่เพิ่มซ้ำ</div>
-   <textarea id="stkpaste" rows="5" style="width:100%" placeholder="AAPL 10.5 150.25&#10;NVDA 3 120"></textarea>
-   <div style="margin:6px 0"><button class="b" data-act="stkcheck">ตรวจสอบก่อนนำเข้า</button></div><div id="stkprev"></div></details>
-  <details class="stktools"><summary>★ นำเข้าจากหน้ารายการสินทรัพย์ Dime (มูลค่า + กำไร) — แนะนำ</summary>
-   <div class="note" style="margin:6px 0">หนึ่งบรรทัดต่อหนึ่งหุ้น: <b>สัญลักษณ์ มูลค่า(USD) กำไร/ขาดทุน(USD)</b> เช่น <code>MU 654.83 339.48</code> หรือ <code>VRT 57.25 -28.13</code> (ตามหน้ารายการสินทรัพย์ในแอป) ระบบจะดึงราคาตลาด แล้วคำนวณจำนวนหุ้น = มูลค่า ÷ ราคา และทุนเฉลี่ย = (มูลค่า − กำไร) ÷ จำนวนหุ้น ต้องใส่ API key ก่อน ค่าที่ได้เป็นค่าประมาณ แก้ไขในตารางได้</div>
-   <textarea id="stkpastev" rows="5" style="width:100%" placeholder="MU 654.83 339.48&#10;VRT 57.25 -28.13"></textarea>
-   <div style="margin:6px 0"><button class="b" data-act="stkcheckv">ดึงราคาและตรวจสอบ</button></div><div id="stkprev2"></div></details>
-  <details class="stktools"><summary>ซื้อเพิ่ม (เฉลี่ยทุนให้อัตโนมัติ)</summary>
-   <div class="ctl" style="margin:8px 0"><label>หุ้น <select id="buysym">${stocks().filter(s=>s.sym).map(s=>`<option>${h(s.sym)}</option>`).join('')}</select></label>
-   <label>จำนวนหุ้นที่ซื้อ <input type="number" step="any" id="buyu" style="width:100px"></label><label>ราคาที่ซื้อ/หุ้น ($) <input type="number" step="any" id="buyp" style="width:100px"></label>
-   <button class="b" data-act="stkbuy">บันทึกการซื้อ</button></div><div class="note" id="buymsg"></div></details>
-  <div class="ctl" style="margin-top:8px"><label>นำมูลค่าพอร์ตไปใส่ในตารางมูลค่าการลงทุน ชื่อพอร์ต <input type="text" id="stkport" value="${h(stkPortName())}" style="width:140px"></label><span class="note">ต้องตรงกับชื่อรายการลงทุนที่บันทึกไว้ (เช่น Dime) · ใช้อัตรา USD→บาทด้านบน</span></div>
-${stocks().length?'':'<div class="empty">ยังไม่มีหุ้น กด “+ เพิ่มหุ้น” แล้วใส่สัญลักษณ์ เช่น AAPL, NVDA, VOO (เว้นจำนวนหุ้นว่างได้ถ้าแค่อยากติดตามราคา)</div>'}
-  <div class="note" style="margin-top:8px"><span data-sk="status">${h(stkStatus())}</span> · รีเฟรชอัตโนมัติทุก 1 นาทีขณะเปิดหน้านี้ · ราคาเป็น USD จาก Finnhub (ตอนตลาดปิดจะเป็นราคาปิดล่าสุด) ไม่ใช่คำแนะนำการลงทุน</div></div></section>`;
+let stkTool='v',lastHistSave=0;
+function stkDay(){let pl=0,val=0,any=false;stocks().forEach(s=>{const q=quotes[s.sym],u=parseFloat(s.units);if(q&&q.c>0&&q.d!=null&&u>0){any=true;pl+=q.d*u;val+=q.c*u;}});
+  return any?{pl,pct:val-pl>0?pl/(val-pl):null}:null;}
+function stkHeroHtml(){
+  const T=stkTotals(),rate=fxRate(),d=stkDay();
+  let cost=0;stocks().forEach(s=>{const c=stkCalc(s);if(c.val!=null&&c.cost!=null)cost+=c.cost;});
+  const sg=n=>(n>=0?'+':'')+usd(n);
+  if(!stocks().length)return `<div class="hero-top"><span class="note">พอร์ตหุ้นสหรัฐ</span></div><div class="hero-val">ยังไม่มีหุ้น</div><div class="hero-sub">เปิด “จัดการหุ้น” ด้านล่าง แล้วเพิ่มหรือนำเข้าจาก Dime</div><div class="hero-st"><span data-sk="status">${h(stkStatus())}</span></div>`;
+  return `<div class="hero-top"><span class="note">มูลค่าพอร์ตหุ้นสหรัฐ (USD)</span><button class="b" data-act="stkrefresh">↻ รีเฟรช</button></div>
+  <div class="hero-val">${T.val==null?'-':usd(T.val)}</div>
+  <div class="hero-sub">${rate&&T.val!=null?'≈ '+thb(T.val*rate)+' · 1 USD = '+rate.toFixed(2)+' บาท':(T.val==null?'ยังไม่มีราคา — ใส่ API key แล้วกดรีเฟรช':'')}</div>
+  <div class="hero-row"><div><small>เปลี่ยนแปลงวันนี้</small><b class="${d?upDn(d.pl):''}">${d?sg(d.pl)+(d.pct!=null?' ('+pctS(d.pct)+')':''):'-'}</b></div>
+  <div><small>กำไร/ขาดทุนรวม</small><b class="${upDn(T.pl)}">${T.pl==null?'-':sg(T.pl)+' ('+pctS(T.plp)+')'}</b></div>
+  <div><small>ต้นทุนรวม</small><b>${cost>0?usd(cost):'-'}</b></div></div>
+  <div class="hero-st"><span data-sk="status">${h(stkStatus())}</span> · อัปเดตอัตโนมัติทุก 1 นาทีขณะเปิดหน้านี้ (ฟรี จึงไม่ใช่เรียลไทม์จริง · ตลาดปิดเป็นราคาปิดล่าสุด)</div>`;
 }
+function stockHero(){return `<section class="hero" id="stkhero">${stkHeroHtml()}</section>`;}
+function stockListCard(){
+  if(!stocks().length)return '';
+  return `<section class="card"><div class="hd"><h2>หุ้นในพอร์ต</h2><span class="note">ติ๊ก “ดู” ในส่วนจัดการหุ้น เพื่อให้ขึ้นที่แดชบอร์ด</span></div><div class="bd"><div id="stklist" class="stklist"></div></div></section>`;
+}
+function stockManage(){
+  const has=!!fhKey(),open=(!stocks().length||!has)?'open':'';
+  const tab=(k,l)=>`<button class="b${stkTool===k?' pri':''}" data-act="stktool" data-t="${k}">${l}</button>`;
+  return `<details class="card manage" id="stkmanage" ${open}><summary>⚙ จัดการหุ้น · เพิ่ม / นำเข้า / ซื้อเพิ่ม / ตั้งค่า</summary><div class="bd">
+  <div class="mg-sec"><h3>1) ตั้งค่า</h3><div class="ctl"><label>Finnhub API key <input type="password" id="fhkey" autocomplete="off" placeholder="${has?'บันทึกแล้ว (ใส่ใหม่เพื่อเปลี่ยน)':'วาง API key ที่นี่'}" style="min-width:230px"></label>
+   <label>อัตรา USD→บาท <input type="number" step="any" id="fxm" value="${S.settings.fxManual==null?'':S.settings.fxManual}" placeholder="อัตโนมัติ" style="width:100px"></label>
+   <label>ชื่อพอร์ตในตารางลงทุน <input type="text" id="stkport" value="${h(stkPortName())}" style="width:130px"></label></div>
+   <div class="note" style="margin-top:6px">ขอ key ฟรีที่ <a href="https://finnhub.io/register" target="_blank" rel="noopener">finnhub.io</a> · key เก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ไม่ขึ้น GitHub ต้องใส่แยกแต่ละเครื่อง · ชื่อพอร์ตต้องตรงกับชื่อรายการลงทุนที่บันทึกไว้ (เช่น Dime)</div></div>
+  <div class="mg-sec"><h3>2) เพิ่ม / นำเข้า</h3><div class="ctl" style="gap:6px;margin-bottom:10px">${tab('v','★ จากหน้ารายการ Dime')}${tab('n','รู้จำนวนหุ้นและทุน')}${tab('one','เพิ่มทีละตัว')}${tab('buy','ซื้อเพิ่ม (เฉลี่ยทุน)')}</div>
+   <div data-tool="v" ${stkTool==='v'?'':'hidden'}><div class="note" style="margin-bottom:6px">หนึ่งบรรทัดต่อหนึ่งหุ้น: <b>สัญลักษณ์ มูลค่า(USD) กำไร/ขาดทุน(USD)</b> เช่น <code>MU 654.83 339.48</code> หรือ <code>VRT 57.25 -28.13</code> ระบบดึงราคาแล้วคำนวณจำนวนหุ้นและทุนเฉลี่ยให้ (ค่าประมาณ) · ต้องใส่ API key ก่อน</div>
+    <textarea id="stkpastev" rows="5" style="width:100%" placeholder="MU 654.83 339.48&#10;VRT 57.25 -28.13"></textarea><div style="margin:6px 0"><button class="b pri" data-act="stkcheckv">ดึงราคาและตรวจสอบ</button></div><div id="stkprev2"></div></div>
+   <div data-tool="n" ${stkTool==='n'?'':'hidden'}><div class="note" style="margin-bottom:6px">หนึ่งบรรทัดต่อหนึ่งหุ้น: <b>สัญลักษณ์ จำนวนหุ้น ทุนเฉลี่ย/หุ้น(USD)</b> เช่น <code>AAPL 10.5 150.25</code> · หุ้นที่มีอยู่แล้วจะถูกอัปเดต ไม่เพิ่มซ้ำ</div>
+    <textarea id="stkpaste" rows="5" style="width:100%" placeholder="AAPL 10.5 150.25&#10;NVDA 3 120"></textarea><div style="margin:6px 0"><button class="b pri" data-act="stkcheck">ตรวจสอบก่อนนำเข้า</button></div><div id="stkprev"></div></div>
+   <div data-tool="one" ${stkTool==='one'?'':'hidden'}><div class="note" style="margin-bottom:6px">เพิ่มแถวว่างหนึ่งแถวในตารางด้านล่าง แล้วกรอกสัญลักษณ์ จำนวนหุ้น และทุนเฉลี่ย</div><button class="b pri" data-act="addstk">+ เพิ่มหุ้น</button></div>
+   <div data-tool="buy" ${stkTool==='buy'?'':'hidden'}><div class="ctl"><label>หุ้น <select id="buysym">${stocks().filter(s=>s.sym).map(s=>`<option>${h(s.sym)}</option>`).join('')}</select></label>
+    <label>จำนวนหุ้นที่ซื้อ <input type="number" step="any" id="buyu" style="width:100px"></label><label>ราคาที่ซื้อ/หุ้น ($) <input type="number" step="any" id="buyp" style="width:100px"></label>
+    <button class="b pri" data-act="stkbuy">บันทึกการซื้อ</button></div><div class="note" id="buymsg" style="margin-top:6px"></div></div></div>
+  <div class="mg-sec"><h3>3) แก้ไขรายตัว</h3><div class="scroller"><table class="tx" style="min-width:760px"><thead><tr><th title="แสดงบนแดชบอร์ด">ดู</th><th>หุ้น</th><th>จำนวนหุ้น</th><th>ทุนเฉลี่ย/หุ้น ($)</th><th>ราคาล่าสุด</th><th>วันนี้</th><th>มูลค่า</th><th>กำไร/ขาดทุน</th><th>%</th><th></th></tr></thead><tbody>
+   ${stocks().map(stkRow).join('')}
+   <tr class="sum"><td colspan="6">รวม</td><td class="n" data-sk="tot:val">-</td><td class="n" data-sk="tot:pl">-</td><td class="n" data-sk="tot:plp">-</td><td></td></tr></tbody></table></div>
+   ${stocks().length?'':'<div class="empty">ยังไม่มีหุ้น เลือกวิธีเพิ่มด้านบน</div>'}</div></div></details>`;
+}
+function stkRecordHist(){
+  const T=stkTotals();if(T.val==null)return;
+  if(Object.values(quotes).some(q=>q&&q.err))return;
+  const day=new Date().toLocaleDateString('en-CA'),H=Array.isArray(S.settings.stkHist)?S.settings.stkHist:(S.settings.stkHist=[]);
+  const last=H[H.length-1],v=+T.val.toFixed(2);
+  if(last&&last.d===day){const ch=Math.abs(v-last.v)/Math.max(last.v,1);last.v=v;if(ch>0.005&&Date.now()-lastHistSave>900000){lastHistSave=Date.now();markDirty('settings');}}
+  else{H.push({d:day,v});if(H.length>800)H.splice(0,H.length-800);lastHistSave=Date.now();markDirty('settings');}
+}
+function stockHistCard(){
+  const H=S.settings.stkHist||[];
+  return `<section class="card"><div class="hd"><h2>มูลค่าพอร์ตหุ้นย้อนหลัง (USD)</h2><span class="note">เก็บยอดวันละครั้งเมื่อเปิดหน้านี้</span></div><div class="bd">${H.length>=2?'<div class="chartbox" style="height:230px"><canvas id="stkHist" aria-label="มูลค่าพอร์ตหุ้นย้อนหลัง"></canvas></div>':'<div class="empty">ยังมีข้อมูลไม่พอ ระบบจะเก็บยอดรายวันให้ กราฟจะขึ้นเมื่อมีข้อมูล 2 วันขึ้นไป</div>'}</div></section>`;
+}
+function drawStkHist(){const H=S.settings.stkHist||[];if(H.length<2||!$('#stkHist'))return;
+  mkChart('stkHist',{type:'line',data:{labels:H.map(x=>x.d),datasets:[{label:'มูลค่าพอร์ต',data:H.map(x=>x.v),borderColor:cv('--s1'),backgroundColor:cv('--s1'),borderWidth:2,pointRadius:H.length>40?0:3,tension:.25}]},
+    options:{...barOpts(),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+usd(c.parsed.y)}}}}});}
 function stockStrip(){
   const w=stocks().filter(s=>s.watch&&s.sym);if(!w.length)return '';
-  return `<section class="card"><div class="hd"><h2>หุ้นที่ติดตาม (เรียลไทม์)</h2><span class="note" data-sk="status">${h(stkStatus())}</span></div><div class="bd"><div id="stkdash"></div></div></section>`;
+  return `<section class="card"><div class="hd"><h2>หุ้นที่ติดตาม · ราคาล่าสุด</h2><span class="note" data-sk="status">${h(stkStatus())}</span></div><div class="bd"><div id="stkdash"></div></div></section>`;
 }
 function stkPortName(){return (S.settings.stkPort||'Dime').trim();}
 function stkLive(){const rate=fxRate(),T=stkTotals();if(!rate||T.val==null)return null;const o={};o[norm(stkPortName())]=T.val*rate;return o;}
@@ -1104,15 +1150,17 @@ function stkListHtml(onlyWatch){
   const items=lst.map(s=>({s,c:stkCalc(s)}));
   if(key==='sym')items.sort((x,y)=>x.s.sym<y.s.sym?-1:1);
   else items.sort((x,y)=>{const a=SORTS[key][1](x),b=SORTS[key][1](y);return (b==null?-Infinity:b)-(a==null?-Infinity:a);});
-  const sumline=T.val!=null?`<div class="stksum"><b>${usd(T.val)}</b>${rate?` <span class="note">≈ ${thb(T.val*rate)}</span>`:''} <span class="${upDn(T.pl)}">${T.pl==null?'':(T.pl>=0?'+':'')+usd(T.pl)+' ('+pctS(T.plp)+')'}</span></div>`:'';
+  const sumline=onlyWatch&&T.val!=null?`<div class="stksum"><b>${usd(T.val)}</b>${rate?` <span class="note">≈ ${thb(T.val*rate)}</span>`:''} <span class="${upDn(T.pl)}">${T.pl==null?'':(T.pl>=0?'+':'')+usd(T.pl)+' ('+pctS(T.plp)+')'}</span></div>`:'';
   const rows=items.map(({s,c})=>{
     const w=T.val>0&&c.val!=null?c.val/T.val:null,main=c.val!=null?c.val:c.price;
-    return `<div class="stkit"><div class="l"><b>${h(s.sym)}</b><small>${w==null?(c.err?h(c.err):'ติดตามราคา'):'◔ '+(w*100).toFixed(2)+'%'}</small></div>
+    const hue=[...s.sym].reduce((x,ch)=>x*31+ch.charCodeAt(0),7)%360;
+    return `<div class="stkit"><div class="l"><span class="av" style="--h:${hue}">${h(s.sym.slice(0,2))}</span><div><b>${h(s.sym)}</b><small>${w==null?(c.err?h(c.err):'ติดตามราคา'):'◔ '+(w*100).toFixed(2)+'%'}</small></div></div>
     <div class="m"><b>${c.err?'-':usd(main)}</b><small>${rate&&main!=null&&!c.err?'≈ '+thb(main*rate):''}</small></div>
     <div class="r ${upDn(c.plp!=null?c.plp:c.dp)}"><b>${c.plp!=null?(c.plp>=0?'▲ ':'▼ ')+pctS(c.plp).replace('+',''):(c.dp!=null?(c.dp>=0?'▲ ':'▼ ')+pctS(c.dp).replace('+','')+' วันนี้':'-')}</b><small>${c.pl!=null?'('+(c.pl>=0?'+':'')+usd(c.pl).replace('$','')+' USD)':''}</small></div></div>`;}).join('');
   return `<div class="stkhd"><label class="ctl">เรียงตาม <select id="stksort">${Object.entries(SORTS).map(([k,v])=>`<option value="${k}" ${k===key?'selected':''}>${v[0]}</option>`).join('')}</select></label><span class="note">${items.length} สินทรัพย์</span></div>${sumline}${rows||''}`;
 }
 function updateStocks(){
+  const hr=$('#stkhero');if(hr)hr.innerHTML=stkHeroHtml();
   const lb=$('#stklist');if(lb){const sel=lb.querySelector('#stksort');if(!(sel&&document.activeElement===sel))lb.innerHTML=stkListHtml();}
   const ld=$('#stkdash');if(ld){const sel=ld.querySelector('#stksort');if(!(sel&&document.activeElement===sel))ld.innerHTML=stkListHtml(true);}
   const set=(k,t,cls)=>$$(`[data-sk="${k}"]`).forEach(e=>{e.textContent=t;if(cls!==undefined){e.classList.remove('up','dn');if(cls)e.classList.add(cls);}});
@@ -1138,7 +1186,7 @@ async function refreshQuotes(){
     catch(e){qErr=e.message==='key'?'API key ไม่ถูกต้อง':e.message==='limit'?'เรียกราคาถี่เกินโควตาฟรี รอสักครู่':'ดึงราคาไม่สำเร็จ (ตรวจอินเทอร์เน็ต)';if(e.message==='key'||e.message==='limit')break;}
   }
   try{const r=await fetch('https://open.er-api.com/v6/latest/USD');const j=await r.json();const t=j&&j.rates&&j.rates.THB;if(t>0)fxAuto=t;}catch(e){}
-  qBusy=false;if(!qErr)qAt=Date.now();updateStocks();
+  qBusy=false;if(!qErr){qAt=Date.now();stkRecordHist();}updateStocks();
   if(tab==='inv'&&invCtx){const lv=stkLive(),nv=lv?lv[norm(stkPortName())]:null,ov=invCtx.liveV;
     if(nv!=null&&(ov==null||Math.abs(nv-ov)>1)&&!(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)))render();}
 }
@@ -1165,6 +1213,7 @@ document.addEventListener('click',e=>{
   if(a==='addstk'){stocks().push({id:uid('k'),sym:'',units:null,cost:null,watch:true});markDirty('settings');render();}
   else if(a==='delstk'){removing('ลบหุ้นแล้ว',['settings'],()=>{S.settings.stocks=stocks().filter(x=>x.id!==b.dataset.id);});}
   else if(a==='stkrefresh'){qAt=0;refreshQuotes();}
+  else if(a==='stktool'){stkTool=b.dataset.t;$$('[data-tool]').forEach(x=>x.hidden=x.dataset.tool!==stkTool);$$('[data-act="stktool"]').forEach(x=>x.classList.toggle('pri',x.dataset.t===stkTool));}
   else if(a==='stkcheck'){stkParsed=stkParse($('#stkpaste').value);$('#stkprev').innerHTML=stkPreviewHtml(stkParsed);}
   else if(a==='stkcheckv'){const box=$('#stkprev2'),key=fhKey();
     const rows=stkParseV($('#stkpastev').value);stkParsed=null;
@@ -1203,21 +1252,25 @@ function viewInv(){
   invCtx={T,port,liveV:live?live[norm(stkPortName())]:null};
   const hasCur=T.rows.some(r=>r.current!=null);
   return `<div class="stack"><div class="banner">Dashboard การลงทุน</div>
-  ${stockCard()}
+  ${stockHero()}
+  ${stockListCard()}
+  ${stockManage()}
+  ${stockHistCard()}
+  <h2 class="sect">ภาพรวมการลงทุนทั้งหมด (บาท)</h2>
   <div class="kpis">
     <div class="kpi"><h3>ลงทุนรวมทั้งหมด</h3><div class="big">${fmt(T.totInvested)}</div><small>ซื้อ − ขาย ทุกรายการ</small></div>
     <div class="kpi"><h3>มูลค่าปัจจุบัน</h3><div class="big">${hasCur?fmt(T.totCurrent):'-'}</div><small>กรอกแล้ว ${T.coverage} รายการ</small></div>
     <div class="kpi"><h3>กำไร / ขาดทุน %</h3><div class="big">${T.pct==null?'-':(T.pct*100).toFixed(2)+'%'}</div><small>คำนวณเฉพาะรายการที่กรอกมูลค่าแล้ว</small></div></div>
   <div class="two">
-   <section class="card"><div class="hd"><h2>กรอกมูลค่าการเงินลงทุนของเรา</h2><button class="b pri" data-act="addpf">+ เพิ่มมูลค่า</button></div>
+   <section class="card"><div class="hd"><h2>กรอกมูลค่าสินทรัพย์อื่น (ทอง กองทุน ฯลฯ)</h2><button class="b pri" data-act="addpf">+ เพิ่มมูลค่า</button></div>
     <div class="scroller"><table class="tx"><thead><tr><th>วันที่กรอก</th><th>ชื่อรายการ</th><th>มูลค่าปัจจุบัน</th><th></th></tr></thead><tbody>
     <datalist id="dl-pf">${names.map(n=>`<option value="${h(n)}">`).join('')}</datalist>
     ${S.pf.map(p=>`<tr><td><input type="date" value="${h(p.date||'')}" data-b="pf" data-f="date" data-id="${p.id}" aria-label="วันที่กรอก"></td><td><input type="text" list="dl-pf" value="${h(p.name)}" data-b="pf" data-f="name" data-id="${p.id}" aria-label="ชื่อรายการ"></td><td><input type="number" step="any" value="${p.value==null?'':p.value}" data-b="pf" data-f="value" data-id="${p.id}" aria-label="มูลค่าปัจจุบัน"></td><td><button class="ico" data-act="delpf" data-id="${p.id}" title="ลบ">×</button></td></tr>`).join('')}
     </tbody></table></div>${S.pf.length?'':'<div class="empty">ยังไม่ได้กรอกมูลค่าปัจจุบัน กด “+ เพิ่มมูลค่า”</div>'}
-    <div class="bd note">ใช้ค่าล่าสุดตามวันที่กรอกของแต่ละรายการ เป็นมูลค่าปัจจุบัน</div></section>
+    <div class="bd note">ใช้ค่าล่าสุดตามวันที่กรอกของแต่ละรายการ เป็นมูลค่าปัจจุบัน · แถว “${h(stkPortName())}” ใช้ค่าจากพอร์ตหุ้นอัตโนมัติ ไม่ต้องกรอก</div></section>
    <section class="card"><div class="hd"><h2>มูลค่าเงินลงทุน เทียบมูลค่าปัจจุบัน</h2></div>
     <div class="scroller"><table class="t-inv"><thead><tr><th>ชื่อรายการ</th><th>จำนวนเงินลงทุน</th><th>มูลค่าปัจจุบัน</th><th>Cap Gain/Lost</th></tr></thead><tbody>
-    ${T.rows.map(r=>`<tr><td class="nm">${h(r.name)}</td><td class="n">${fmt(r.invested)}</td><td class="n">${r.current==null?'-':fmt(r.current)}</td><td class="n" style="color:${r.gain==null?'inherit':r.gain>=0?'var(--good)':'var(--bad)'}">${r.gain==null?'-':(r.gain>=0?'+':'')+fmt(r.gain)}</td></tr>`).join('')}
+    ${T.rows.map(r=>`<tr><td class="nm">${h(r.name)}${live&&norm(r.name)===norm(stkPortName())?' <span class="note">· ประมาณ จากพอร์ตหุ้น</span>':''}</td><td class="n">${fmt(r.invested)}</td><td class="n">${r.current==null?'-':fmt(r.current)}</td><td class="n" style="color:${r.gain==null?'inherit':r.gain>=0?'var(--good)':'var(--bad)'}">${r.gain==null?'-':(r.gain>=0?'+':'')+fmt(r.gain)}</td></tr>`).join('')}
     <tr class="sum"><td>รวม</td><td class="n">${fmt(T.totInvested)}</td><td class="n">${hasCur?fmt(T.totCurrent):'-'}</td><td></td></tr></tbody></table></div></section>
   </div>
   <div class="two">
@@ -1237,7 +1290,7 @@ function viewInv(){
   </div>`;
 }
 function afterInv(){
-  stocksAfter();
+  stocksAfter();drawStkHist();
   if(!invCtx)return;
   const {T,port}=invCtx;
   const hasCur=T.rows.some(r=>r.current!=null);
